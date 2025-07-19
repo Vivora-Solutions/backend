@@ -1,7 +1,31 @@
 import supabase from '../config/supabaseClient.js';
+import bcrypt from 'bcrypt';
 
 export const handleUserRegistration = async (body) => {
-  const { email, password, role, first_name, last_name, salon_name, salon_email, salon_address } = body;
+  const {
+    email,
+    password,
+    role,
+    first_name,
+    last_name,
+    salon_name,
+    salon_address,
+    date_of_birth,
+    location,
+    contact_number,
+    salon_description,
+    salon_logo_link,
+  } = body;
+
+  // Hash the password BEFORE saving
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+  // Convert location to PostGIS Point (WKT format)
+  let locationWKT = null;
+  if (location && location.latitude && location.longitude) {
+    locationWKT = `SRID=4326;POINT(${location.longitude} ${location.latitude})`;
+  }
 
   // 1. Create user with Supabase Auth
   const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -11,16 +35,15 @@ export const handleUserRegistration = async (body) => {
 
   if (signUpError) throw new Error(signUpError.message);
   const supabaseUser = authData.user;
-
   if (!supabaseUser) throw new Error('User registration failed.');
 
-  // 2. Insert into "user" table
+  // 2. Insert into "user" table with hashed password
   const { data: userRow, error: userInsertError } = await supabase
     .from('user')
     .insert({
       user_id: supabaseUser.id,
       email,
-      password_hash: password,
+      password_hash: hashedPassword,
       role,
     })
     .select()
@@ -36,6 +59,9 @@ export const handleUserRegistration = async (body) => {
         user_id: userRow.user_id,
         first_name,
         last_name,
+        date_of_birth,
+        location: locationWKT, 
+        contact_number
       });
 
     if (customerInsertError) throw new Error(customerInsertError.message);
@@ -44,8 +70,12 @@ export const handleUserRegistration = async (body) => {
       .from('salon')
       .insert({
         salon_name,
-        salon_email,
+        location: locationWKT,
+        salon_contact_number: contact_number,
+        salon_email: email,
         salon_address,
+        salon_description,
+        salon_logo_link,
         admin_user_id: userRow.user_id,
       });
 
@@ -61,6 +91,8 @@ export const handleUserRegistration = async (body) => {
 
 
 
+
+
 export const handleUserLogin = async ({ email, password }) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -69,7 +101,7 @@ export const handleUserLogin = async ({ email, password }) => {
 
   if (error) throw new Error(error.message);
 
-  // Optional: fetch user's role from your "user" table
+  // fetch user's role from your "user" table
   const { data: userRow, error: fetchError } = await supabase
     .from('user')
     .select('user_id, role')
@@ -81,24 +113,23 @@ export const handleUserLogin = async ({ email, password }) => {
   return {
     message: 'Login successful',
     session: data.session,        // contains access_token, refresh_token
-    user: data.user,              // supabase user object
-    customRole: userRow.role,     // from your custom table
+    //user: data.user,            // supabase user object
+    customRole: userRow.role,     // from your custom table(This includes customer, salon_admin, super_admin)
   };
 };
 
-/**
- * LOGOUT USER
- */
+
+// LOGOUT USER
 export const handleUserLogout = async () => {
-  const { error } = await supabase.auth.signOut(); // Symbolic — client should remove token
+  const { error } = await supabase.auth.signOut();
   if (error) throw new Error(error.message);
 
   return { message: 'Logged out successfully (client should clear token)' };
 };
 
-/**
- * REFRESH TOKEN
- */
+
+
+// REFRESH TOKEN
 export const handleTokenRefresh = async (refresh_token) => {
   const { data, error } = await supabase.auth.refreshSession({ refresh_token });
 
