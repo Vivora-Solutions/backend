@@ -1,4 +1,3 @@
-// src/controllers/userController.js
 import { fetchUsers } from '../services/userService.js';
 
 export const getAllUsers = async (req, res) => {

@@ -1,4 +1,3 @@
-// src/services/userService.js
 import supabase from '../config/supabaseClient.js';
 
 export const fetchUsers = async () => {
