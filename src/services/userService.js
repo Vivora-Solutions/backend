@@ -5,3 +5,7 @@ export const fetchUsers = async () => {
   if (error) throw new Error(error.message);
   return data;
 };
+
+
+
+
