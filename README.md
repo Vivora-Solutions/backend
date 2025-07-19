@@ -23,5 +23,6 @@ backend/
 ├── .env                              # Environment variables (Supabase URL & key)
 ├── .gitignore
 ├── package.json
+├── package-lock.json
 └── README.md
 ```
