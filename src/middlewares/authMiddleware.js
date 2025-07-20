@@ -20,7 +20,9 @@ export const requireAuth = async (req, res, next) => {
     // Fetch role from your user table once here
     const { data: userRow, error: userError } = await supabase
       .from('user')
+
       .select('user_id, role')
+
       .eq('user_id', user.id)
       .single();
 
@@ -29,7 +31,9 @@ export const requireAuth = async (req, res, next) => {
     }
 
     req.user = user;
+
     req.userRole = userRow.role;
+
     //.userRole = userRow.role;  // Attach role to request for next middlewares
     req.userId = userRow.user_id; // Attach user_id to request for next middlewares
     //console.log(req.userRole);
