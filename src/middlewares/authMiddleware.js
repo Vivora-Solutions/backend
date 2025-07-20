@@ -20,7 +20,7 @@ export const requireAuth = async (req, res, next) => {
     // Fetch role from your user table once here
     const { data: userRow, error: userError } = await supabase
       .from('user')
-      .select('role')
+      .select('user_id')
       .eq('user_id', user.id)
       .single();
 
@@ -29,7 +29,10 @@ export const requireAuth = async (req, res, next) => {
     }
 
     req.user = user;
-    req.userRole = userRow.role;  // Attach role to request for next middlewares
+    //.userRole = userRow.role;  // Attach role to request for next middlewares
+    req.userId = userRow.user_id; // Attach user_id to request for next middlewares
+    //console.log(req.userRole);
+    //onsole.log(req.userId);
     next();
   } catch (err) {
     return res.status(500).json({ error: 'Internal auth error: ' + err.message });
