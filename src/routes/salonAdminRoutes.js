@@ -5,6 +5,7 @@
 // change the salon contact number      -done
 // change the salon location
 // change the salon opening hours and days
+
 // add images to the salon gallery             -done
 // delete images from the salon gallery        -done
 // change salon one images from gallery        -done
@@ -25,12 +26,14 @@
 // according to day salon admins can add start time daily and end time daily (day can be also change by salon admin) for this we want a post method and put method
 
 
+
 import express from 'express';
 import {
   updateSalonDetails,
   addBannerImage,
   deleteBannerImage,
   updateBannerImage
+
 } from '../controllers/salonAdminBasicController.js';
 
 
@@ -63,10 +66,8 @@ import { requireAuth } from '../middlewares/authMiddleware.js';
 //import { requireSalonAdmin } from '../middlewares/roleAuthMidddleware.js';
 
 
+
 const router = express.Router();
-
-
-
 
 // 1.Update salon fields - can't update is_approve field using that
 router.put('/update', requireAuth, updateSalonDetails);
@@ -128,5 +129,6 @@ router.put('/schedule/status/:stylistId', requireAuth, toggleStylistActiveStatus
 router.post('/schedule', requireAuth, addStylistSchedule);
 // Update work schedule for a stylist (PUT)
 router.put('/schedule/:scheduleId', requireAuth, updateStylistSchedule);
+
 
 export default router;
