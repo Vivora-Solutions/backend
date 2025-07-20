@@ -3,7 +3,7 @@ import {
   handleAddBannerImage,
   handleDeleteBannerImage,
   handleUpdateBannerImage
-} from '../services/salonAdminService.js';
+} from '../services/salonAdminBasicService.js';
 
 // Update salon fields
 export const updateSalonDetails = async (req, res) => {
