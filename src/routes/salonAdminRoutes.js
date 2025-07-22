@@ -23,9 +23,13 @@
 // get all stylists in a salon_for that salon_admin                               -done   
 // change statsus of is_active (bool value) only for salon_admins can do it       -done
 // according to day salon admins can add start time daily and end time daily (day can be also change by salon admin) for this we want a post method and put method
-
+// get all booking
+// add a booking manually    
+// change a booking manually
+// delete a booking manually
 
 import express from 'express';
+
 import {
   updateSalonDetails,
   addBannerImage,
@@ -59,9 +63,13 @@ import {
   updateStylistSchedule
 } from '../controllers/salonAdminscheduleRelatedController.js';
 
-import { requireAuth } from '../middlewares/authMiddleware.js';
-//import { requireSalonAdmin } from '../middlewares/roleAuthMidddleware.js';
+import {
+  createBooking,
+  updateBooking,
+  deleteBooking,
+} from '../controllers/salonAdminBookingRelatedController.js';
 
+import { requireAuth } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -77,9 +85,9 @@ router.put('/update', requireAuth, updateSalonDetails);
 // Add banner image
 router.post('/images', requireAuth, addBannerImage);
 // Delete banner image
-router.delete('/images/:imageId',requireAuth, deleteBannerImage);
+router.delete('/images/:imageId', requireAuth, deleteBannerImage);
 // Update banner image
-router.put('/images/:imageId',requireAuth, updateBannerImage);
+router.put('/images/:imageId', requireAuth, updateBannerImage);
 
 
 
@@ -128,5 +136,15 @@ router.put('/schedule/status/:stylistId', requireAuth, toggleStylistActiveStatus
 router.post('/schedule', requireAuth, addStylistSchedule);
 // Update work schedule for a stylist (PUT)
 router.put('/schedule/:scheduleId', requireAuth, updateStylistSchedule);
+
+// 5. Booking management
+
+// Create a booking per salon admin only access for that salon
+router.post('/booking', createBooking);
+// Edit details of a booking only for that salon admin
+router.put('/booking/:bookingId', updateBooking);
+// Delete a booking only for that salon admin have access
+router.delete('/booking/:bookingId', deleteBooking);
+
 
 export default router;
