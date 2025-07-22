@@ -5,6 +5,7 @@
 // change the salon contact number      -done
 // change the salon location
 // change the salon opening hours and days
+
 // add images to the salon gallery             -done
 // delete images from the salon gallery        -done
 // change salon one images from gallery        -done
@@ -28,6 +29,7 @@
 // change a booking manually
 // delete a booking manually
 
+
 import express from 'express';
 
 import {
@@ -35,6 +37,7 @@ import {
   addBannerImage,
   deleteBannerImage,
   updateBannerImage
+
 } from '../controllers/salonAdminBasicController.js';
 
 
@@ -71,10 +74,8 @@ import {
 
 import { requireAuth } from '../middlewares/authMiddleware.js';
 
+
 const router = express.Router();
-
-
-
 
 // 1.Update salon fields - can't update is_approve field using that
 router.put('/update', requireAuth, updateSalonDetails);
@@ -136,6 +137,7 @@ router.put('/schedule/status/:stylistId', requireAuth, toggleStylistActiveStatus
 router.post('/schedule', requireAuth, addStylistSchedule);
 // Update work schedule for a stylist (PUT)
 router.put('/schedule/:scheduleId', requireAuth, updateStylistSchedule);
+
 
 // 5. Booking management
 
