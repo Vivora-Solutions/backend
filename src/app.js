@@ -1,7 +1,9 @@
 import express from 'express';
 
 import authRoutes from './routes/authRoutes.js';
+
 import salonAdminRoutes from './routes/salonAdminRoutes.js';
+import supperAdminRoutes from './routes/supperAdminRoutes.js';
 //import bookingRoutes from './routes/bookingRoutes.js'
 import salonRoutes from './routes/salonRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
