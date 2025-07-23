@@ -12,17 +12,26 @@ export const fetchSalonById = async (id) => {
   return data;
 };
 
-export const fetchSalonsByLocation = async ({ lat, lng, radius_km = 5 }) => {
+export const fetchSalonsByLocation = async ({ latitude, longitude }, radius = 5000) => {
+  if (!latitude || !longitude) {
+    throw new Error("Latitude and longitude are required");
+  }
+
   const { data, error } = await supabase
-    .rpc('salons_nearby', {
-      lat,
-      lng,
-      radius_km,
+    .rpc("get_salons_nearby", {
+      lat: latitude,
+      lng: longitude,
+      radius_meters: radius, // optional
     });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("Error fetching salons by location:", error.message);
+    throw new Error("Failed to fetch salons by location");
+  }
+
   return data;
 };
+
 
 export const fetchSalonsByName = async (name) => {
   const { data, error } = await supabase
@@ -71,3 +80,44 @@ export const fetchStylistAvailability = async (stylistId) => {
   if (error) throw new Error(error.message);
   return data;
 };
+
+
+
+export const fetchSalonsByServiceName = async (serviceName) => {
+  if (!serviceName || typeof serviceName !== 'string') {
+    throw { status: 400, message: 'Invalid or missing service name' };
+  }
+
+  const { data, error } = await supabase
+    .from('service')
+    .select(`
+      service_id,
+      service_name,
+      price,
+      duration_minutes,
+      salon:salon_id (
+        salon_id,
+        salon_name,
+        salon_email,
+        salon_address,
+        salon_logo_link,
+        salon_description,
+        is_approved,
+        location
+      )
+    `)
+    .ilike('service_name', `%${serviceName}%`)
+    .eq('is_available', true);
+
+  if (error) {
+    console.error('Supabase error:', error.message);
+    throw { status: 500, message: 'Database query failed' };
+  }
+
+  if (!data || data.length === 0) {
+    throw { status: 404, message: 'No salons found for the given service' };
+  }
+
+  return data;
+};
+

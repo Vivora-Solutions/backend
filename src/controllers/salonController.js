@@ -6,7 +6,8 @@ import {
   fetchSalonsByService,
   fetchSalonsByType,
   fetchStylistsBySalon,
-  fetchStylistAvailability
+  fetchStylistAvailability,
+  fetchSalonsByServiceName
 } from '../services/salonService.js';
 
 export const getAllSalons = async (req, res) => {
@@ -30,23 +31,25 @@ export const getSalonById = async (req, res) => {
 
 export const getSalonsByLocation = async (req, res) => {
   try {
-    const { lat, lng, radius_km } = req.query;
+    const { location, radius } = req.body;
 
-    if (!lat || !lng) {
-      return res.status(400).json({ error: 'Latitude and longitude are required.' });
+    if (
+      !location ||
+      typeof location.latitude !== 'number' ||
+      typeof location.longitude !== 'number'
+    ) {
+      return res.status(400).json({ error: 'Invalid or missing location data' });
     }
 
-    const data = await fetchSalonsByLocation({
-      lat: parseFloat(lat),
-      lng: parseFloat(lng),
-      radius_km: parseFloat(radius_km) || 5,
-    });
-
+    const data = await fetchSalonsByLocation(location, radius);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("getSalonsByLocation error:", err.message);
+    res.status(500).json({ error: 'Failed to fetch salons by location' });
   }
 };
+
+
 
 export const getSalonsByName = async (req, res) => {
   try {
@@ -92,3 +95,27 @@ export const getAvailableTimeSlots = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+export const getSalonsByServiceName = async (req, res) => {
+  try {
+    const name = req.query.name;
+    console.log(name);
+
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Service name is required in query' });
+    }
+
+    const salons = await fetchSalonsByServiceName(name);
+    return res.status(200).json(salons);
+  } catch (err) {
+    console.error('getSalonsByServiceName error:', err);
+
+    const status = err.status || 500;
+    const message = err.message || 'Unexpected server error';
+
+    return res.status(status).json({ error: message });
+  }
+};
+
