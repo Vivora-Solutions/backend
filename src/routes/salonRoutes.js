@@ -22,13 +22,10 @@ router.get('/location', getSalonsByLocation);         //not working
 router.get('/name/:name', getSalonsByName);           // http://localhost:3000/api/salons/name/Sithum
 // Get salons by service type
 router.get('/by-service', getSalonsByServiceName);    //http://localhost:3000/api/salons/by-service?name=Haircut
-
-
-
 // Get salons by type unisex, male, female
 router.get('/type/:id', getSalonsByType);                               //http://localhost:3000/api/salons/type/2da738de-ab0e-4cc5-9e5a-a4bfcbb43dc0
 // Get all stylists by salon ID                                 
-router.get('/:id/stylists', getStylistsBySalonId);                      //http://localhost:3000/api/salons/2da738de-ab0e-4cc5-9e5a-a4bfcbb43dc0/stylists
+router.get('/:id/stylists', getStylistsBySalonId);                    //http://localhost:3000/api/salons/2da738de-ab0e-4cc5-9e5a-a4bfcbb43dc0/stylists
 // Get available time slots for a stylist
 router.get('/stylist/:stylistId/availability', getAvailableTimeSlots);  //http://localhost:3000/api/salons/stylist/b5991531-a0e1-460e-bce9-3dee1056d3b6/availability
 
