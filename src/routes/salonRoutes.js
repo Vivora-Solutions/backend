@@ -7,7 +7,8 @@ import {
   getSalonsByServiceType,
   getSalonsByType,
   getStylistsBySalonId,
-  getAvailableTimeSlots
+  getAvailableTimeSlots,
+  getSalonBannerByID
 } from '../controllers/salonController.js';
 
 const router = express.Router();
@@ -24,5 +25,8 @@ router.get('/type/:id', getSalonsByType);       //http://localhost:3000/api/salo
 router.get('/:id/stylists', getStylistsBySalonId);      //http://localhost:3000/api/salons/2da738de-ab0e-4cc5-9e5a-a4bfcbb43dc0/stylists
 
 router.get('/stylist/:stylistId/availability', getAvailableTimeSlots);  //http://localhost:3000/api/salons/stylist/b5991531-a0e1-460e-bce9-3dee1056d3b6/availability
+
+router.get('/banner/:salon_id',getSalonBannerByID);
+
 
 export default router;

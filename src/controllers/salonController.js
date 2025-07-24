@@ -6,7 +6,8 @@ import {
   fetchSalonsByService,
   fetchSalonsByType,
   fetchStylistsBySalon,
-  fetchStylistAvailability
+  fetchStylistAvailability,
+  fetchSalonBannerByID
 } from '../services/salonService.js';
 
 export const getAllSalons = async (req, res) => {
@@ -21,6 +22,19 @@ export const getAllSalons = async (req, res) => {
 export const getSalonById = async (req, res) => {
   try {
     const data = await fetchSalonById(req.params.id);
+    res.json(data);
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+};
+
+export const getSalonBannerByID= async (req, res) => {
+  const salon_id = req.params.salon_id;
+  if (!salon_id) {
+    return res.status(400).json({ error: 'Salon ID is required.' });
+  }
+  try {
+    const data = await fetchSalonBannerByID(salon_id);
     res.json(data);
   } catch (err) {
     res.status(404).json({ error: err.message });

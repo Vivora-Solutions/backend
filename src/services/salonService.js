@@ -12,6 +12,13 @@ export const fetchSalonById = async (id) => {
   return data;
 };
 
+
+export const fetchSalonBannerByID = async (id) => {
+  const { data, error } = await supabase.from('banner_images').select('*').eq('salon_id', id).single();
+  if (error) throw new Error('Banner  not found');
+  return data;
+};
+
 export const fetchSalonsByLocation = async ({ lat, lng, radius_km = 5 }) => {
   const { data, error } = await supabase
     .rpc('salons_nearby', {
