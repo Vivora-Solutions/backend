@@ -36,7 +36,8 @@ import {
   updateSalonDetails,
   addBannerImage,
   deleteBannerImage,
-  updateBannerImage
+  updateBannerImage,
+  getSalonDetailsController
 
 } from '../controllers/salonAdminBasicController.js';
 
@@ -80,7 +81,7 @@ const router = express.Router();
 // 1.Update salon fields - can't update is_approve field using that
 router.put('/update', requireAuth, updateSalonDetails);
 
-
+router.get('/my', requireAuth, getSalonDetailsController);
 // 2.Banner Image management
 
 // Add banner image
