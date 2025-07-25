@@ -136,3 +136,73 @@ export const handleUpdateBannerImage = async (user_id, imageId, newImageLink) =>
 };
 
 
+
+export const getSalonDetailsByUserId = async (user_id) => {
+  const { data, error } = await supabase
+      .from('salon')
+      .select(`
+      salon_id,
+      salon_name,
+      salon_contact_number,
+      salon_email,
+      salon_address,
+      salon_description,
+      salon_logo_link
+    `)
+      .eq('admin_user_id', user_id)
+      .single();
+
+  if (error || !data) {
+    throw new Error('Salon not found for this user');
+  }
+
+  return data;
+};
+
+
+export const getSalonAndBannerImagesByUserId = async (user_id) => {
+  // 1. Get salon by admin_user_id
+  const { data: salon, error: salonError } = await supabase
+      .from('salon')
+      .select(`
+      salon_id,
+      salon_name,
+      salon_contact_number,
+      salon_email,
+      salon_address,
+      salon_description,
+      salon_logo_link,
+      is_approved,
+      created_at
+    `)
+      .eq('admin_user_id', user_id)
+      .single();
+
+  if (salonError || !salon) {
+    throw new Error('Salon not found for this user');
+  }
+
+  const salonId = salon.salon_id;
+
+  // 2. Fetch banner images for that salon
+  const { data: bannerImages, error: bannerError } = await supabase
+      .from('banner_images')
+      .select(`
+      image_id,
+      image_link,
+      created_at
+    `)
+      .eq('salon_id', salonId);
+
+  if (bannerError) {
+    console.error('[Banner Image Error]', bannerError.message);
+    throw new Error('Failed to fetch banner images');
+  }
+
+  return {
+    ...salon,
+    banner_images: bannerImages || [],
+  };
+};
+
+

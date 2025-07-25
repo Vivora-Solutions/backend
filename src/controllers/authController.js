@@ -14,10 +14,36 @@ export const registerUser = async (req, res) => {
   }
 };
 
+// export const loginUser = async (req, res) => {
+//   try {
+//     const sessionData = await handleUserLogin(req.body);
+//     res.status(200).json(sessionData);
+//   } catch (error) {
+//     res.status(401).json({ error: error.message });
+//   }
+// };
+
+
 export const loginUser = async (req, res) => {
   try {
     const sessionData = await handleUserLogin(req.body);
-    res.status(200).json(sessionData);
+
+    const { session, customRole } = sessionData;
+
+    //  Set refresh token as a cookie
+    res.cookie('refresh_token', session.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // set to false for localhost dev
+      sameSite: 'Strict', // or 'Lax' if frontend is on another origin
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    //  Return access token and role to frontend
+    res.status(200).json({
+      message: 'Login successful',
+      access_token: session.access_token,
+      customRole,
+    });
   } catch (error) {
     res.status(401).json({ error: error.message });
   }
