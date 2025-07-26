@@ -4,7 +4,10 @@ import {
   handleDeleteBannerImage,
   handleUpdateBannerImage,
   getSalonDetailsByUserId,
-  getSalonAndBannerImagesByUserId
+  getSalonAndBannerImagesByUserId,
+  handleGetBannerImages,
+  handleUpsertOpeningHoursForWeek,
+  handleGetOpeningHoursForSalon
 } from '../services/salonAdminBasicService.js';
 
 // Update salon fields
@@ -20,6 +23,24 @@ export const updateSalonDetails = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// GetBannerImages
+export const getBannerImages = async (req, res) => {
+  try {
+    const user_id = req.userId; // Assumes middleware attaches userId to req
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'Salon Owner ID not found for this user' });
+    }
+
+    const images = await handleGetBannerImages(user_id);
+    res.status(200).json({ images });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 
 // Add new banner image
 export const addBannerImage = async (req, res) => {
@@ -88,3 +109,34 @@ export const getSalonDetailsController = async (req, res) => {
     res.status(404).json({ error: error.message });
   }
 };
+
+export const updateOpeningHoursForWeek = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    if (!user_id) return res.status(400).json({ error: 'Unauthorized request' });
+
+    const daysData = req.body.daysData;
+    if (!Array.isArray(daysData) || daysData.length !== 7) {
+      return res.status(400).json({ error: 'daysData should be an array of 7 days' });
+    }
+
+    const result = await handleUpsertOpeningHoursForWeek(user_id, daysData);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getOpeningHoursForSalon = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    if (!user_id) return res.status(400).json({ error: 'Unauthorized' });
+
+    const result = await handleGetOpeningHoursForSalon(user_id);
+    res.status(200).json({ days: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+

@@ -37,7 +37,9 @@ import {
   addBannerImage,
   deleteBannerImage,
   updateBannerImage,
-  getSalonDetailsController
+  getSalonDetailsController,
+  getBannerImages,
+  updateOpeningHoursForWeek, getOpeningHoursForSalon
 
 } from '../controllers/salonAdminBasicController.js';
 
@@ -78,13 +80,21 @@ import { requireAuth } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// 1.Update salon fields - can't update is_approve field using that
+// Update salon fields - can't update is_approve field using that
 router.put('/update', requireAuth, updateSalonDetails);
-
+//  Get details about salon
 router.get('/my', requireAuth, getSalonDetailsController);
+
+
+
 // 2.Banner Image management
 
 // Add banner image
+
+
+// Get banner images
+router.get('/images', requireAuth, getBannerImages);
+
 router.post('/images', requireAuth, addBannerImage);
 // Delete banner image
 router.delete('/images/:imageId', requireAuth, deleteBannerImage);
@@ -117,7 +127,7 @@ router.delete('/stylist/:stylist_id/bio', requireAuth, deleteStylistBio);
 // 4. Service management
 
 // Add new service to the salon
-router.post('/service',requireAuth, addService);
+router.post('/service', requireAuth, addService);
 // Delete a specific service by ID
 router.delete('/service/:serviceId',  requireAuth, deleteService);
 // Update price of a specific service
@@ -148,6 +158,14 @@ router.post('/booking', createBooking);
 router.put('/booking/:bookingId', updateBooking);
 // Delete a booking only for that salon admin have access
 router.delete('/booking/:bookingId', deleteBooking);
+
+
+
+// 6. Opening Hours management
+
+router.get('/opening-hours', requireAuth, getOpeningHoursForSalon);
+router.post('/opening-hours', requireAuth, updateOpeningHoursForWeek)
+
 
 
 export default router;

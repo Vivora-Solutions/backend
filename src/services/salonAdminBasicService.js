@@ -15,6 +15,35 @@ export const handleUpdateSalonDetails = async (user_id, fieldsToUpdate) => {
   return { message: 'Salon details updated successfully', data };
 };
 
+// Get all banner images of that salon
+export const handleGetBannerImages = async (user_id) => {
+  // Step 1: Get the salon_id for the given user_id
+  const { data: salonData, error: salonError } = await supabase
+      .from('salon')
+      .select('salon_id')
+      .eq('admin_user_id', user_id)
+      .single();
+
+  if (salonError || !salonData) {
+    throw new Error('Salon not found for this user');
+  }
+
+  const salon_id = salonData.salon_id;
+
+  // Step 2: Fetch all banner images for this salon
+  const { data: bannerImages, error: imageError } = await supabase
+      .from('banner_images')
+      .select('image_link')
+      .eq('salon_id', salon_id);
+
+  if (imageError) {
+    throw new Error('Failed to fetch banner images: ' + imageError.message);
+  }
+
+  return bannerImages;
+};
+
+
 // Add image to salon gallery
 export const handleAddBannerImage = async (user_id, image_link) => {
   // Step 1: Get the salon_id for the given user_id
@@ -204,5 +233,63 @@ export const getSalonAndBannerImagesByUserId = async (user_id) => {
     banner_images: bannerImages || [],
   };
 };
+
+
+
+export const handleUpsertOpeningHoursForWeek = async (user_id, daysData) => {
+  // Get the salon_id from the logged-in user
+  const { data: salonData, error: salonError } = await supabase
+      .from('salon')
+      .select('salon_id')
+      .eq('admin_user_id', user_id)
+      .single();
+
+  if (salonError || !salonData) throw new Error('Salon not found for this user');
+  const salon_id = salonData.salon_id;
+
+  const upsertData = daysData.map(day => ({
+    salon_id,
+    day_of_week: day.day_of_week,
+    is_open: day.is_open,
+    opening_time: day.is_open ? day.opening_time : null,
+    closing_time: day.is_open ? day.closing_time : null,
+    updated_at: new Date().toISOString(),
+  }));
+
+  const { data, error } = await supabase
+      .from('salon_opening_hours')
+      .upsert(upsertData, { onConflict: ['salon_id', 'day_of_week'] }) // ensures update if exists
+      .select();
+
+  if (error) throw new Error(error.message);
+  return { message: 'Opening hours updated for the week', data };
+};
+
+
+
+export const handleGetOpeningHoursForSalon = async (user_id) => {
+  // Step 1: Get salon_id for the user
+  const { data: salonData, error: salonError } = await supabase
+      .from('salon')
+      .select('salon_id')
+      .eq('admin_user_id', user_id)
+      .single();
+
+  if (salonError || !salonData) throw new Error('Salon not found for this user');
+  const salon_id = salonData.salon_id;
+
+  // Step 2: Get all 7 days of opening hours
+  const { data, error } = await supabase
+      .from('salon_opening_hours')
+      .select('*')
+      .eq('salon_id', salon_id)
+      .order('day_of_week', { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  return data; // array of opening hour entries (0 to 6)
+};
+
+
 
 
