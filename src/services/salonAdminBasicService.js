@@ -32,8 +32,8 @@ export const handleGetBannerImages = async (user_id) => {
 
   // Step 2: Fetch all banner images for this salon
   const { data: bannerImages, error: imageError } = await supabase
-      .from('banner_images')
-      .select('image_link')
+      .from('banner_images',)
+      .select('image_link,image_id')
       .eq('salon_id', salon_id);
 
   if (imageError) {

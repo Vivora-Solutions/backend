@@ -8,7 +8,9 @@ export const handleAddService = async (user_id, serviceDetails) => {
     service_description,
     service_image_link,
     price,
-    duration_minutes
+    duration_minutes,
+    service_category,
+    show_price
   } = serviceDetails;
 
   const { data, error } = await supabase
@@ -21,6 +23,8 @@ export const handleAddService = async (user_id, serviceDetails) => {
         service_image_link,
         price,
         duration_minutes,
+        service_category,
+        show_price,
         is_available: true
       }
     ])
@@ -29,6 +33,38 @@ export const handleAddService = async (user_id, serviceDetails) => {
   if (error) throw new Error(error.message);
   return { message: 'Service added', data };
 };
+
+
+export const handleUpdateService = async (user_id, serviceId, serviceDetails) => {
+
+  const salon_id = await getSalonIdByAdmin(user_id);
+  const serviceSalonId = await getServiceSalonId(serviceId);
+  if (salon_id !== serviceSalonId) throw new Error('Unauthorized to update this service');  
+  const {
+    service_name,
+    service_description,
+    service_image_link,
+    price,
+    duration_minutes,
+    is_available
+  } = serviceDetails;
+  const { data, error } = await supabase
+    .from('service')
+    .update({
+      service_name,
+      service_description,
+      service_image_link,
+      price,
+      duration_minutes,
+      is_available,
+      updated_at: new Date()
+    })
+    .eq('service_id', serviceId)
+    .select();
+  if (error) throw new Error(error.message);
+  return { message: 'Service updated', data };
+};
+  
 
 export const handleDeleteService = async (user_id, service_id) => {
   const salon_id = await getSalonIdByAdmin(user_id);
@@ -107,3 +143,16 @@ const getServiceSalonId = async (service_id) => {
   if (error || !data) throw new Error('Service not found');
   return data.salon_id;
 };
+
+
+export const handleGetAllServices = async (user_id) => {
+  const salon_id = await getSalonIdByAdmin(user_id);
+
+  const { data, error } = await supabase
+    .from('service')
+    .select('service_id, service_name, service_description, service_image_link, price, duration_minutes, is_available,service_category,show_price')
+    .eq('salon_id', salon_id);
+
+  if (error) throw new Error(error.message);
+  return data;
+}

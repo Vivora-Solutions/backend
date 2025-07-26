@@ -59,7 +59,9 @@ import {
   addService,
   deleteService,
   updateServicePrice,
-  updateServiceDuration
+  updateServiceDuration,
+  getAllServices,
+  updateService
 } from '../controllers/salonAdminServiceRelatedController.js';
 
 import {
@@ -76,6 +78,7 @@ import {
 } from '../controllers/salonAdminBookingRelatedController.js';
 
 import { requireAuth } from '../middlewares/authMiddleware.js';
+import { getServiceById } from '../controllers/superAdminController.js';
 
 
 const router = express.Router();
@@ -126,15 +129,18 @@ router.delete('/stylist/:stylist_id/bio', requireAuth, deleteStylistBio);
 
 // 4. Service management
 
+
+
+router.get('/service',requireAuth,getAllServices);
 // Add new service to the salon
 router.post('/service', requireAuth, addService);
 // Delete a specific service by ID
-router.delete('/service/:serviceId',  requireAuth, deleteService);
+// router.delete('/service/:serviceId',  requireAuth, deleteService);
 // Update price of a specific service
 router.put('/service/:serviceId/price', requireAuth, updateServicePrice);
 // Update duration of a specific service
 router.put('/service/:serviceId/duration',  requireAuth, updateServiceDuration);
-
+router.put('/service/:serviceId', requireAuth, updateService);
 
 
 
