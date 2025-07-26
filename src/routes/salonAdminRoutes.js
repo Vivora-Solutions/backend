@@ -128,7 +128,7 @@ router.put('/stylist/:stylist_id/bio', requireAuth, updateStylistBio);
 // Delete bio
 router.delete('/stylist/:stylist_id/bio', requireAuth, deleteStylistBio);
 // Add service to a stylist
-router.post('/stylist/:stylist_id/services', requireAuth, addServicesToStylist);
+router.post('/stylist/services', requireAuth, addServicesToStylist);
 // Remove service from stylist
 router.post('/stylist/:stylist_id/services', requireAuth, deleteServicesFromStylist);
 // Get all services of a stylist
