@@ -1,48 +1,26 @@
-import { 
-  handleCreateBooking,
+import {
   handleGetUserBookings,
   handleGetBookingById,
   handleUpdateBooking,
   handleCancelBooking,
   handleRescheduleBooking,
-  handleGetBookingHistory
+  handleGetBookingHistory,
+  handleCreateBookingWithServices
 } from '../services/bookingService.js'
 
+// controllers/bookingController.js
 export const createBooking = async (req, res) => {
   try {
     const user_id = req.userId;
-    const bookingData = req.body;
+    const { service_ids, booking_start_datetime, notes } = req.body;
 
-    if (!user_id) {
-      return res.status(400).json({ error: 'User ID not found for this user' });
-    }
+    if (!user_id) return res.status(401).json({ error: 'Unauthorized' });
 
-    // Validate required fields
-    const {
-      salon_id,
-      booking_start_datetime,
-      booking_end_datetime,
-      total_duration_minutes,
-      total_price,
-      services
-    } = bookingData;
-
-    if (!salon_id || !booking_start_datetime || !booking_end_datetime || !total_duration_minutes || !total_price) {
-      return res.status(400).json({
-        error: 'salon_id, booking_start_datetime, booking_end_datetime, total_duration_minutes, and total_price are required'
-      });
-    }
-
-    // Optional validation: ensure services is an array (if provided)
-    if (services && !Array.isArray(services)) {
-      return res.status(400).json({ error: '`services` must be an array if provided' });
-    }
-
-    // Delegate to service function
-    const result = await handleCreateBooking(user_id, bookingData);
-    res.status(201).json({ message: 'Booking created successfully', data: result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const result = await handleCreateBookingWithServices(user_id, service_ids, booking_start_datetime, notes);
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('[Booking Error]', error.message);
+    res.status(400).json({ error: error.message });
   }
 };
 
