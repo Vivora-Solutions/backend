@@ -151,25 +151,73 @@ export const handleDeleteStylistBio = async (user_id, stylist_id) => {
 };
 
 
+
 export const handleAddServicesToStylist = async (user_id, stylist_id, service_ids) => {
   const salon_id = await getSalonIdByAdmin(user_id);
 
-  const entries = service_ids.map(service_id => ({
+  // 1. Check if stylist belongs to admin's salon
+  const { data: stylist, error: stylistError } = await supabase
+      .from('stylist')
+      .select('stylist_id')
+      .eq('stylist_id', stylist_id)
+      .eq('salon_id', salon_id)
+      .single();
+
+  if (stylistError || !stylist) {
+    throw new Error('Stylist not found in your salon');
+  }
+
+  // 2. Check if all service_ids belong to admin's salon
+  const { data: validServices, error: serviceError } = await supabase
+      .from('service')
+      .select('service_id')
+      .in('service_id', service_ids)
+      .eq('salon_id', salon_id);
+
+  if (serviceError) throw new Error(serviceError.message);
+
+  const validServiceIds = validServices.map(s => s.service_id);
+  const invalidServiceIds = service_ids.filter(id => !validServiceIds.includes(id));
+
+  if (invalidServiceIds.length > 0) {
+    throw new Error(`Invalid services for this salon: ${invalidServiceIds.join(', ')}`);
+  }
+
+  // 3. Filter out services already assigned to this stylist
+  const { data: existingServices, error: existingError } = await supabase
+      .from('stylist_service')
+      .select('service_id')
+      .eq('stylist_id', stylist_id)
+      .eq('salon_id', salon_id);
+
+  if (existingError) throw new Error(existingError.message);
+
+  const alreadyAssigned = new Set(existingServices.map(s => s.service_id));
+  const newServicesToAdd = validServiceIds.filter(id => !alreadyAssigned.has(id));
+
+  if (newServicesToAdd.length === 0) {
+    return { message: 'All provided services are already assigned to this stylist.' };
+  }
+
+  // 4. Insert only new service assignments
+  const insertData = newServicesToAdd.map(service_id => ({
     stylist_id,
     service_id,
     salon_id,
-    created_at: new Date(),
-    updated_at: new Date()
   }));
 
-  const { data, error } = await supabase
+  const { data: inserted, error: insertError } = await supabase
       .from('stylist_service')
-      .upsert(entries, { ignoreDuplicates: true }) // avoid conflict if already exists
-      .select();
+      .insert(insertData);
 
-  if (error) throw new Error(error.message);
-  return { message: 'Services added to stylist', data };
+  if (insertError) throw new Error(insertError.message);
+
+  return {
+    message: 'New services added to stylist.',
+    data: inserted,
+  };
 };
+
 
 export const handleDeleteServicesFromStylist = async (user_id, stylist_id, service_ids) => {
   const salon_id = await getSalonIdByAdmin(user_id);
@@ -186,8 +234,25 @@ export const handleDeleteServicesFromStylist = async (user_id, stylist_id, servi
 };
 
 export const handleGetServicesOfStylist = async (user_id, stylist_id) => {
+  // Step 1: Get the salon_id of the admin
   const salon_id = await getSalonIdByAdmin(user_id);
+  if (!salon_id) {
+    throw new Error('Salon not found for this admin');
+  }
 
+  // Step 2: Verify the stylist belongs to the same salon
+  const { data: stylistData, error: stylistError } = await supabase
+      .from('stylist')
+      .select('stylist_id')
+      .eq('stylist_id', stylist_id)
+      .eq('salon_id', salon_id)
+      .single();
+
+  if (stylistError || !stylistData) {
+    throw new Error('Stylist does not belong to your salon');
+  }
+
+  // Step 3: Fetch assigned services from stylist_service
   const { data, error } = await supabase
       .from('stylist_service')
       .select(`
@@ -203,16 +268,16 @@ export const handleGetServicesOfStylist = async (user_id, stylist_id) => {
         is_available
       )
     `)
-      .eq('stylist_id', stylist_id)
-      .eq('salon_id', salon_id);
+      .eq('stylist_id', stylist_id);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(error.message);
+  }
 
-  // flatten and return the service details only
+  // Flatten the nested structure
   const services = data.map(entry => entry.service);
   return services;
 };
-
 
 
 
