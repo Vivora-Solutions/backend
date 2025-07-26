@@ -1,10 +1,17 @@
 import {
+    getTotalCustomerCount,
+    getTotalSalonCount,
+    getTotalBookingCount,
+
+    fetchUnapprovedSalons,
+    searchUnapprovedSalonsByName,
+    fetchBookingsBySalonId,
     // Users
     fetchAllUsers,
     fetchUserById,
     updateUserService,
     // deleteUserService,
-    
+
     // Salons
     fetchAllSalons,
     fetchSalonById,
@@ -14,7 +21,7 @@ import {
     deleteSalonService,
     approveSalonService,
     getSalonsPerDayServices,
-    
+
     // Stylists
     fetchAllStylists,
     fetchStylistById,
@@ -22,7 +29,7 @@ import {
     createStylistService,
     updateStylistService,
     deleteStylistService,
-    
+
     // Services
     fetchAllServices,
     fetchServiceById,
@@ -30,7 +37,7 @@ import {
     createServiceService,
     updateServiceService,
     deleteServiceService,
-    
+
     // Bookings
     fetchAllBookings,
     fetchBookingById,
@@ -39,13 +46,13 @@ import {
     fetchBookingsByStylist,
     updateBookingStatusService,
     deleteBookingService,
-    
+
     // Customers
     fetchAllCustomers,
     fetchCustomerById,
     updateCustomerService,
     deleteCustomerService,
-    
+
     // Work Schedules
     fetchAllWorkSchedules,
     fetchWorkScheduleById,
@@ -53,14 +60,15 @@ import {
     createWorkScheduleService,
     updateWorkScheduleService,
     deleteWorkScheduleService,
-    
+
     // Booking Services
     fetchAllBookingServices,
     // fetchBookingServicesByBooking,
     fetchBookingServicesBySalonId,
     updateBookingServiceService,
     deleteBookingServiceService2
-} from '../services/supperAdminService.js';
+
+} from '../services/superAdminService.js';
 
 // User Controllers
 export const getAllusers = async (req, res) => {
@@ -118,6 +126,29 @@ export const getAllSalons = async (req, res) => {
     try {
         const salonData = await fetchAllSalons();
         res.status(200).json(salonData);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+// get all UnapprovedSalons
+export const getAllUnapprovedSalons = async (req, res) => {
+    try {
+        const salonData = await fetchUnapprovedSalons();
+        res.status(200).json(salonData);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+//searchUnapprovedSalonsByName
+export const getUnapprovedSalonsByName = async (req, res) => {
+    const { name = '' } = req.query;
+
+    try {
+        const salons = await searchUnapprovedSalonsByName(name);
+        res.status(200).json(salons);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -511,3 +542,46 @@ export const deleteBookingServiceController = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+export const getCustomerCount = async (req, res) => {
+    try {
+        const count = await getTotalCustomerCount();
+        res.status(200).json({ total_customers: count });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getSalonCount = async (req, res) => {
+    try {
+        const count = await getTotalSalonCount();
+        res.status(200).json({ total_salons: count });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getBookingCount = async (req, res) => {
+    try {
+        const count = await getTotalBookingCount();
+        res.status(200).json({ total_bookings: count });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+//fetchBookingsBySalonId
+export const getSalonBookings = async (req, res) => {
+    const { salon_id } = req.params;
+
+    try {
+        const bookings = await fetchBookingsBySalonId(salon_id);
+        res.status(200).json(bookings);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+

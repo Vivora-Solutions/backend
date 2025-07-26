@@ -2,12 +2,19 @@ import express from 'express';
 import { requireAuth } from "../middlewares/authMiddleware.js";
 import { requireSupperAdmin } from "../middlewares/requireSupperAdmin.js";
 import {
+    getCustomerCount,
+    getSalonCount,
+    getBookingCount,
+
+    getAllUnapprovedSalons,
+    getUnapprovedSalonsByName,
+    getSalonBookings,
     // Users
     getAllusers,
     getUserById,
     updateUser,
     // deleteUser,
-    
+
     // Salons
     getAllSalons,
     getSalonById,
@@ -17,7 +24,7 @@ import {
     updateSalonStatus,
     deleteSalon,
     approveSalon,
-    
+
     // Stylists
     getAllStylists,
     getStylistById,
@@ -25,7 +32,7 @@ import {
     createStylist,
     updateStylist,
     deleteStylist,
-    
+
     // Services
     getAllServices,
     getServiceById,
@@ -33,7 +40,7 @@ import {
     createService,
     updateService,
     deleteService,
-    
+
     // Bookings
     getAllBookings,
     getBookingById,
@@ -42,13 +49,13 @@ import {
     getBookingsByStylist,
     updateBookingStatus,
     deleteBooking,
-    
+
     // Customers
     getAllCustomers,
     getCustomerById,
     updateCustomer,
     deleteCustomer,
-    
+
     // Stylist Work Schedules
     getAllWorkSchedules,
     getWorkScheduleById,
@@ -56,14 +63,14 @@ import {
     createWorkSchedule,
     updateWorkSchedule,
     deleteWorkSchedule,
-    
+
     // Booking Services
     getAllBookingServices,
     // getBookingServicesByBooking,
     getBookingServicesBySalonId,
     updateBookingService,
-    deleteBookingServiceController
-} from '../controllers/supperAdminController.js';
+    deleteBookingServiceController,
+} from '../controllers/superAdminController.js';
 
 const router = express.Router();
 
@@ -127,17 +134,35 @@ router.use(requireSupperAdmin);
 
 // router.put('/booking-services/:id', updateBookingService);
 // router.delete('/booking-services/:id', deleteBookingServiceController);
+//  getCustomerCount,
+//     getSalonCount,
 
-router.get('/users', getAllusers);      //works
+router.get('/customer-count', getCustomerCount);    //works
+router.get('/salon-count', getSalonCount);          //works
+router.get('/booking-count', getBookingCount);
+
+router.get('/users', getAllusers);              //works
+
 router.get('/users/:id', getUserById);  //works
 router.put('/users/:id', updateUser); //works
+
+
 router.get('/salons', getAllSalons);        //works
+ //getAllUnapprovedSalons
+router.get('/salons-unapproved', getAllUnapprovedSalons);
+//getUnapprovedSalonsByName
+router.get('/salons-unapproved-search', getUnapprovedSalonsByName);
 router.get('/salons/:id', getSalonById);    //works
 router.put('/salons/:id', updateSalon);       //works for all columns , but this api no need 
 router.put('/salonsStatus/:id', updateSalonStatus); //works for only status column (verify, decline)
-router.get('/salonsperday', getSalonsPerDay); //get number of salons  group by each day
-router.get('/customers', getAllCustomers); //get all number of  customers for group by each day
-router.get('/booking-services', getAllBookingServices);         //return all daily booked count 
+
+router.get('/salonsPerDay', getSalonsPerDay); //get number of salons  group by each day
+router.get('/customersPerDay', getAllCustomers); //get all number of  customers for group by each day
+router.get('/booking-services', getAllBookingServices);         //return all daily booked count
+
+
+router.get('/booking/:salon_id', getSalonBookings);
+
 router.get('/bookings/:salonId/services', getBookingServicesBySalonId);         // return start datetime, end datetime and booked at tieme of each salon
 
 

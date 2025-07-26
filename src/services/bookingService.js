@@ -1,114 +1,152 @@
 import supabase from '../config/supabaseClient.js';
 
-export const handleCreateBooking = async (userId, bookingData) => {
-  const {
-    salon_id,
-    stylist_id,
-    booking_start_datetime,
-    booking_end_datetime,
-    total_duration_minutes,
-    total_price,
-    booked_mode = 'online',
-    notes,
-    services = [] // Expecting an array of service objects
-  } = bookingData;
+export const handleCreateBookingWithServices = async (user_id, service_ids, booking_start_datetime, notes = null) => {
+  const client = supabase;
 
-  // Validate booking times
-  const startTime = new Date(booking_start_datetime);
-  const endTime = new Date(booking_end_datetime);
-  const now = new Date();
-
-  if (startTime <= now) {
-    throw new Error('Booking start time must be in the future');
+  if (!Array.isArray(service_ids) || service_ids.length === 0) {
+    throw new Error('At least one service must be selected.');
   }
 
-  if (endTime <= startTime) {
-    throw new Error('Booking end time must be after start time');
+  // Step 1: Validate and fetch services
+  const { data: services, error: servicesError } = await client
+      .from('service')
+      .select('*')
+      .in('service_id', service_ids);
+
+  if (servicesError || services.length !== service_ids.length) {
+    console.error('[SERVICES ERROR]', servicesError);
+    throw new Error('Some services are invalid or not found.');
   }
 
-  // Validate salon
-  const { error: salonError } = await supabase
-    .from('salon')
-    .select('salon_id')
-    .eq('salon_id', salon_id)
-    .single();
-
-  if (salonError) throw new Error('Salon not found');
-
-  // Validate stylist (if any)
-  if (stylist_id) {
-    const { error: stylistError } = await supabase
-      .from('stylist')
+  // Step 2: Get stylist_id from stylist_service
+  const { data: stylistMapping, error: stylistError } = await client
+      .from('stylist_service')
       .select('stylist_id')
+      .in('service_id', service_ids);
+
+  if (stylistError || !stylistMapping) {
+    console.error('[STYLIST SERVICE ERROR]', stylistError);
+    throw new Error('Could not fetch stylist-service mapping.');
+  }
+
+  const stylistIds = [...new Set(stylistMapping.map(s => s.stylist_id))];
+
+  if (stylistIds.length !== 1) {
+    throw new Error('All selected services must be handled by the same stylist.');
+  }
+
+  const stylist_id = stylistIds[0];
+
+  // Step 3: Get stylist and salon info
+  const { data: stylist, error: stylistFetchError } = await client
+      .from('stylist')
+      .select('stylist_id, salon_id')
       .eq('stylist_id', stylist_id)
+      .eq('is_active', true)
       .single();
 
-    if (stylistError) throw new Error('Stylist not found');
+  if (stylistFetchError || !stylist) {
+    console.error('[STYLIST FETCH ERROR]', stylistFetchError);
+    throw new Error('Stylist not found or inactive.');
   }
 
-  // Step 1: Create booking
-  const { data: booking, error: bookingError } = await supabase
-    .from('booking')
-    .insert({
-      user_id: userId,
-      salon_id,
-      stylist_id: stylist_id || null,
-      booking_start_datetime,
-      booking_end_datetime,
-      total_duration_minutes,
-      total_price,
-      booked_mode,
-      notes: notes || null,
-      status: 'pending'
-    })
-    .select(`
-      booking_id,
-      salon_id,
-      stylist_id,
-      booking_start_datetime,
-      booking_end_datetime,
-      total_duration_minutes,
-      total_price,
-      status,
-      booked_at,
-      booked_mode,
-      notes,
-      salon (
-        salon_name,
-        salon_address
-      ),
-      stylist (
-        stylist_name
-      )
-    `)
-    .single();
+  const { salon_id } = stylist;
 
-  if (bookingError) throw new Error(bookingError.message);
+  // Step 4: Calculate total duration & price
+  const total_duration_minutes = services.reduce((acc, s) => acc + s.duration_minutes, 0);
+  const total_price = services.reduce((acc, s) => acc + parseFloat(s.price), 0.0);
+  const booking_start = new Date(booking_start_datetime);
+  const booking_end = new Date(booking_start.getTime() + total_duration_minutes * 60000);
 
-  // Step 2: Insert related services into booking_services
-  if (services.length > 0) {
-    const bookingServicesData = services.map((service) => ({
-      booking_id: booking.booking_id,
-      service_id: service.service_id,
-      salon_id,
-      service_price_at_booking: service.service_price_at_booking,
-      service_duration_at_booking: service.service_duration_at_booking,
-      notes: service.notes || null
-    }));
+  // Convert to ISO for DB
+  const booking_end_datetime = booking_end.toISOString();
 
-    const { error: servicesError } = await supabase
-      .from('booking_services')
-      .insert(bookingServicesData);
+  // Step 5: Find available workstation (date + time aware)
+  const { data: workstations, error: workstationError } = await client
+      .from('workstation')
+      .select('workstation_id')
+      .eq('salon_id', salon_id);
 
-    if (servicesError) {
-      console.error('Error inserting booking services:', servicesError.message);
-      // Optional: you could roll back the booking creation here if atomicity is needed
-      throw new Error('Failed to add services to booking');
+  if (workstationError || !workstations || workstations.length === 0) {
+    console.error('[WORKSTATION FETCH ERROR]', workstationError);
+    throw new Error('No workstations found for this salon.');
+  }
+
+  let available_workstation_id = null;
+
+  for (const ws of workstations) {
+    const { count, error: bookingConflictError } = await client
+        .from('booking')
+        .select('booking_id', { count: 'exact', head: true })
+        .eq('workstation_id', ws.workstation_id)
+        .or(`booking_start_datetime.lte.${booking_end.toISOString()},booking_end_datetime.gte.${booking_start.toISOString()}`);
+
+    if (bookingConflictError) {
+      console.error('[BOOKING CONFLICT ERROR]', bookingConflictError);
+      throw new Error('Error checking workstation availability');
+    }
+
+    if (count === 0) {
+      available_workstation_id = ws.workstation_id;
+      break;
     }
   }
 
-  return booking;
+  if (!available_workstation_id) {
+    throw new Error('No available workstations at the selected time.');
+  }
+
+  // Step 6: Create booking
+  const { data: booking, error: bookingError } = await client
+      .from('booking')
+      .insert([{
+        user_id,
+        salon_id,
+        stylist_id,
+        booking_start_datetime,
+        booking_end_datetime,
+        workstation_id: available_workstation_id,
+        notes,
+        total_duration_minutes,
+        total_price
+      }])
+      .select('booking_id')
+      .single();
+
+  if (bookingError || !booking) {
+    console.error('[BOOKING INSERT ERROR]', bookingError?.message || bookingError);
+    throw new Error('Failed to create booking.');
+  }
+
+  const booking_id = booking.booking_id;
+
+  // Step 7: Insert into booking_services
+  const servicesToInsert = services.map(service => ({
+    booking_id,
+    service_id: service.service_id,
+    salon_id,
+    service_price_at_booking: service.price,
+    service_duration_at_booking: service.duration_minutes
+  }));
+
+  const { error: bsError } = await client
+      .from('booking_services')
+      .insert(servicesToInsert);
+
+  if (bsError) {
+    console.error('[BOOKING_SERVICES INSERT ERROR]', bsError);
+    await client.from('booking').delete().eq('booking_id', booking_id);
+    throw new Error('Failed to add booking services, rolled back booking.');
+  }
+
+  return {
+    booking_id,
+    workstation_id: available_workstation_id,
+    message: 'Booking successfully created.'
+  };
 };
+
+
 
 export const handleGetUserBookings = async (userId) => {
   const { data, error } = await supabase
@@ -137,7 +175,7 @@ export const handleGetUserBookings = async (userId) => {
     .eq('user_id', userId)
     .in('status', ['pending', 'confirmed', 'in_progress'])
     .order('booking_start_datetime', { ascending: true });
-    
+
   if (error) throw new Error(error.message);
   return data;
 };

@@ -57,6 +57,31 @@ export const fetchAllSalons = async () => {
     return data;
 };
 
+export const fetchUnapprovedSalons = async () => {
+    const { data, error } = await supabase
+        .from('salon')
+        .select('salon_id, salon_logo_link, salon_address, salon_name')
+        .eq('is_approved', false)
+        .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data;
+};
+
+export const searchUnapprovedSalonsByName = async (searchTerm) => {
+    const { data, error } = await supabase
+        .from('salon')
+        .select('salon_logo_link, salon_address, salon_name')
+        .ilike('salon_name', `%${searchTerm}%`) // case-insensitive search
+        .eq('is_approved', false)
+        .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data;
+};
+
+
+
 export const fetchSalonById = async (salonId) => {
     const { data, error } = await supabase
         .from('salon')
@@ -314,6 +339,26 @@ export const fetchAllBookings = async () => {
         `)
         .order('booking_start_datetime', { ascending: false });
     
+    if (error) throw new Error(error.message);
+    return data;
+};
+
+export const fetchBookingsBySalonId = async (salonId) => {
+    const { data, error } = await supabase
+        .from('booking')
+        .select(`
+        *,
+        user(user_id),
+        salon(salon_id, salon_name),
+        stylist(stylist_name),
+        booking_services(
+            *,
+            service(service_name)
+        )
+    `)
+        .eq('salon_id', salonId)
+        .order('booking_start_datetime', { ascending: false });
+
     if (error) throw new Error(error.message);
     return data;
 };
@@ -619,4 +664,44 @@ export const deleteBookingServiceService2 = async (bookingServiceId) => {
     
     if (error) throw new Error(error.message);
     return true;
+};
+
+
+export const getTotalCustomerCount = async () => {
+    const { count, error } = await supabase
+        .from('customer') // Replace 'users' with your actual user table name
+        .select('*', { count: 'exact', head: true });
+
+    if (error) {
+        console.error('Error getting customer count:', error.message);
+        throw new Error('Failed to get customer count');
+    }
+
+    return count;
+};
+
+export const getTotalSalonCount = async () => {
+    const { count, error } = await supabase
+        .from('salon') // Replace 'users' with your actual user table name
+        .select('*', { count: 'exact', head: true });
+
+    if (error) {
+        console.error('Error getting salon count:', error.message);
+        throw new Error('Failed to get salon count');
+    }
+
+    return count;
+};
+
+export const getTotalBookingCount = async () => {
+    const { count, error } = await supabase
+        .from('booking') // Replace 'users' with your actual user table name
+        .select('*', { count: 'exact', head: true });
+
+    if (error) {
+        console.error('Error getting booking count:', error.message);
+        throw new Error('Failed to get booking count');
+    }
+
+    return count;
 };
