@@ -53,6 +53,9 @@ import {
   deleteStylistProfilePic,
   updateStylistBio,
   deleteStylistBio,
+  addServicesToStylist,
+  deleteServicesFromStylist,
+  getServicesOfStylist
 } from '../controllers/salonAdminStylistRelatedController.js';
 
 import {
@@ -124,6 +127,13 @@ router.delete('/stylist/:stylist_id/profile-picture', requireAuth, deleteStylist
 router.put('/stylist/:stylist_id/bio', requireAuth, updateStylistBio);
 // Delete bio
 router.delete('/stylist/:stylist_id/bio', requireAuth, deleteStylistBio);
+// Add service to a stylist
+router.post('/stylist/:stylist_id/services', requireAuth, addServicesToStylist);
+// Remove service from stylist
+router.post('/stylist/:stylist_id/services', requireAuth, deleteServicesFromStylist);
+// Get all services of a stylist
+router.get('/stylist/:stylist_id/services', requireAuth, getServicesOfStylist);
+
 
 
 

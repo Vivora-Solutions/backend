@@ -121,3 +121,18 @@ export const fetchSalonsByServiceName = async (serviceName) => {
   return data;
 };
 
+
+export const getAllServicesBySalonId = async (salonId) => {
+  const { data, error } = await supabase
+      .from('service')
+      .select('*')
+      .eq('salon_id', salonId)
+      .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+

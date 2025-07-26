@@ -7,6 +7,10 @@ import {
   handleDeleteStylistProfilePic,
   handleUpdateStylistBio,
   handleDeleteStylistBio,
+  handleAddServicesToStylist,
+  handleDeleteServicesFromStylist,
+  handleGetServicesOfStylist
+
 } from '../services/salonAdminStylistRelatedServices.js';
 
 export const addStylist = async (req, res) => {
@@ -115,6 +119,55 @@ export const deleteStylistBio = async (req, res) => {
 
     const result = await handleDeleteStylistBio(user_id, stylist_id);
     res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+export const addServicesToStylist = async (req, res) => {
+  const user_id = req.userId;
+  const { stylist_id, service_ids } = req.body;
+
+  if (!stylist_id || !Array.isArray(service_ids)) {
+    return res.status(400).json({ error: 'Stylist ID and service_ids are required' });
+  }
+
+  try {
+    const result = await handleAddServicesToStylist(user_id, stylist_id, service_ids);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteServicesFromStylist = async (req, res) => {
+  const user_id = req.userId;
+  const { stylist_id, service_ids } = req.body;
+
+  if (!stylist_id || !Array.isArray(service_ids)) {
+    return res.status(400).json({ error: 'Stylist ID and service_ids are required' });
+  }
+
+  try {
+    const result = await handleDeleteServicesFromStylist(user_id, stylist_id, service_ids);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getServicesOfStylist = async (req, res) => {
+  const user_id = req.userId;
+  const { stylist_id } = req.params;
+
+  if (!stylist_id) {
+    return res.status(400).json({ error: 'Stylist ID is required' });
+  }
+
+  try {
+    const data = await handleGetServicesOfStylist(user_id, stylist_id);
+    res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

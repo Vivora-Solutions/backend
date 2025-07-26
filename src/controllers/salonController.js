@@ -7,7 +7,7 @@ import {
   fetchSalonsByType,
   fetchStylistsBySalon,
   fetchStylistAvailability,
-  fetchSalonsByServiceName
+  fetchSalonsByServiceName, getAllServicesBySalonId
 } from '../services/salonService.js';
 
 export const getAllSalons = async (req, res) => {
@@ -116,6 +116,22 @@ export const getSalonsByServiceName = async (req, res) => {
     const message = err.message || 'Unexpected server error';
 
     return res.status(status).json({ error: message });
+  }
+};
+
+export const fetchSalonServices = async (req, res) => {
+  const { salonId } = req.params;
+
+  if (!salonId) {
+    return res.status(400).json({ error: 'Salon ID is required in path params.' });
+  }
+
+  try {
+    const services = await getAllServicesBySalonId(salonId);
+    return res.status(200).json({ success: true, data: services });
+  } catch (error) {
+    console.error('Error fetching services:', error.message);
+    return res.status(500).json({ error: 'Failed to fetch services for this salon.' });
   }
 };
 

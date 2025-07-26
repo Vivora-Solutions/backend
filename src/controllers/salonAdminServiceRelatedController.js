@@ -4,7 +4,7 @@ import {
   handleUpdateServicePrice,
   handleUpdateServiceDuration,
   handleGetAllServices,
-  handleUpdateService
+  handleUpdateService,
 } from '../services/salonAdminServiceRelatedServices.js';
 
 export const addService = async (req, res) => {

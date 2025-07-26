@@ -151,6 +151,68 @@ export const handleDeleteStylistBio = async (user_id, stylist_id) => {
 };
 
 
+export const handleAddServicesToStylist = async (user_id, stylist_id, service_ids) => {
+  const salon_id = await getSalonIdByAdmin(user_id);
+
+  const entries = service_ids.map(service_id => ({
+    stylist_id,
+    service_id,
+    salon_id,
+    created_at: new Date(),
+    updated_at: new Date()
+  }));
+
+  const { data, error } = await supabase
+      .from('stylist_service')
+      .upsert(entries, { ignoreDuplicates: true }) // avoid conflict if already exists
+      .select();
+
+  if (error) throw new Error(error.message);
+  return { message: 'Services added to stylist', data };
+};
+
+export const handleDeleteServicesFromStylist = async (user_id, stylist_id, service_ids) => {
+  const salon_id = await getSalonIdByAdmin(user_id);
+
+  const { error } = await supabase
+      .from('stylist_service')
+      .delete()
+      .in('service_id', service_ids)
+      .eq('stylist_id', stylist_id)
+      .eq('salon_id', salon_id);
+
+  if (error) throw new Error(error.message);
+  return { message: 'Services removed from stylist' };
+};
+
+export const handleGetServicesOfStylist = async (user_id, stylist_id) => {
+  const salon_id = await getSalonIdByAdmin(user_id);
+
+  const { data, error } = await supabase
+      .from('stylist_service')
+      .select(`
+      service(
+        service_id,
+        service_name,
+        service_description,
+        service_image_link,
+        price,
+        duration_minutes,
+        service_category,
+        show_price,
+        is_available
+      )
+    `)
+      .eq('stylist_id', stylist_id)
+      .eq('salon_id', salon_id);
+
+  if (error) throw new Error(error.message);
+
+  // flatten and return the service details only
+  const services = data.map(entry => entry.service);
+  return services;
+};
+
 
 
 
