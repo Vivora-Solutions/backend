@@ -1,35 +1,3 @@
-// change the salon name                -done
-// change the salon description         -done
-// change the salon logo                -done
-// change the salon address             -done
-// change the salon contact number      -done
-// change the salon location
-// change the salon opening hours and days
-
-// add images to the salon gallery             -done
-// delete images from the salon gallery        -done
-// change salon one images from gallery        -done
-// add services to the salon                   -done
-// delete services from the salon              -done
-// change salon one service price              -done
-// change salon one service duration           -done
-// add a stylist                               -done
-// delete a stylist                            -done  
-// change stylist name                         -done 
-// change stylist contact number               -done
-// change stylist profile picture              -done
-// delete stylist profile picture              -done
-// change stylist bio                          -done
-// delete stylist bio                          -done
-// get all stylists in a salon_for that salon_admin                               -done   
-// change statsus of is_active (bool value) only for salon_admins can do it       -done
-// according to day salon admins can add start time daily and end time daily (day can be also change by salon admin) for this we want a post method and put method
-// get all booking
-// add a booking manually    
-// change a booking manually
-// delete a booking manually
-
-
 import express from 'express';
 
 import {
@@ -82,6 +50,12 @@ import {
 
 import { requireAuth } from '../middlewares/authMiddleware.js';
 import { getServiceById } from '../controllers/superAdminController.js';
+import {
+  addOrEditWorkingStationServices,
+  createWorkingStation,
+  editWorkingStation,
+  getAllWorkingStations, getServicesOfWorkingStation
+} from "../controllers/salonAdminWorkingStationRelatedController.js";
 
 
 const router = express.Router();
@@ -181,6 +155,20 @@ router.delete('/booking/:bookingId', deleteBooking);
 
 router.get('/opening-hours', requireAuth, getOpeningHoursForSalon);
 router.post('/opening-hours', requireAuth, updateOpeningHoursForWeek)
+
+
+// 7. Working station management
+
+// 1. Get all working stations in the salon
+router.get('/working-stations', requireAuth, getAllWorkingStations);
+// 2. Create a new working station
+router.post('/working-stations', requireAuth, createWorkingStation);
+// 3. Edit a working station
+router.put('/working-stations', requireAuth, editWorkingStation);
+// 4. Get all services of a specific working station
+router.get('/working-stations/:station_id/services', requireAuth, getServicesOfWorkingStation);
+// 5. Add or edit services for a working station
+router.post('/working-stations/services', requireAuth, addOrEditWorkingStationServices);
 
 
 
