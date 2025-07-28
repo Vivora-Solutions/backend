@@ -5,7 +5,7 @@ export const handleGetAllWorkingStations = async (user_id) => {
     const salon_id = await getSalonIdByAdmin(user_id);
 
     const { data, error } = await supabase
-        .from('working_station')
+        .from('workstation')
         .select('*')
         .eq('salon_id', salon_id);
 
@@ -13,19 +13,37 @@ export const handleGetAllWorkingStations = async (user_id) => {
     return { message: 'Working stations fetched successfully', data };
 };
 
-// Create a Working Station for a Salon
-export const handleCreateWorkingStation = async (user_id, station_name) => {
+export const handleCreateWorkingStation = async (user_id, workstation_name) => {
     const salon_id = await getSalonIdByAdmin(user_id);
-
-    const { data, error } = await supabase
-        .from('working_station')
-        .insert([{ station_name, salon_id, created_at: new Date(), updated_at: new Date() }])
-        .select()
+    // Step 1: Check if salon_id exists
+    const { data: salon, error: salonError } = await supabase
+        .from('salon')
+        .select('salon_id')
+        .eq('salon_id', salon_id)
         .single();
 
+    if (salonError || !salon) {
+        throw new Error('Invalid salon_id: Salon does not exist.');
+    }
+
+    // Step 2: Insert workstation
+    const { data, error } = await supabase
+        .from('workstation')
+        .insert([
+            {
+                salon_id,
+                workstation_name,
+                created_at: new Date(),
+                updated_at: new Date()
+            }
+        ])
+        .select();
+
     if (error) throw new Error(error.message);
-    return { message: 'Working station created successfully', data };
+    return { message: 'Workstation created successfully', data };
 };
+
+
 
 
 // Edit Working Station (e.g., name)
@@ -34,7 +52,7 @@ export const handleEditWorkingStation = async (user_id, station_id, station_name
 
     // Check ownership
     const { data: station, error: fetchErr } = await supabase
-        .from('working_station')
+        .from('workstation')
         .select('*')
         .eq('station_id', station_id)
         .eq('salon_id', salon_id)
@@ -43,7 +61,7 @@ export const handleEditWorkingStation = async (user_id, station_id, station_name
     if (fetchErr) throw new Error('Working station not found or access denied');
 
     const { data, error } = await supabase
-        .from('working_station')
+        .from('workstation')
         .update({ station_name, updated_at: new Date() })
         .eq('station_id', station_id)
         .select()
@@ -61,7 +79,7 @@ export const handleGetServicesOfWorkingStation = async (user_id, station_id) => 
 
     // Ensure the station is in this salon
     const { data: station, error: stationErr } = await supabase
-        .from('working_station')
+        .from('workstation')
         .select('station_id')
         .eq('station_id', station_id)
         .eq('salon_id', salon_id)
@@ -70,7 +88,7 @@ export const handleGetServicesOfWorkingStation = async (user_id, station_id) => 
     if (stationErr) throw new Error('Working station not found or access denied');
 
     const { data, error } = await supabase
-        .from('working_station_service')
+        .from('workstation_service')
         .select(`
       service(
         service_id,
@@ -94,7 +112,7 @@ export const handleAddOrEditServicesToWorkingStation = async (user_id, station_i
 
     // Ensure the station belongs to the salon
     const { data: station, error: stationErr } = await supabase
-        .from('working_station')
+        .from('workstation')
         .select('station_id')
         .eq('station_id', station_id)
         .eq('salon_id', salon_id)
@@ -120,7 +138,7 @@ export const handleAddOrEditServicesToWorkingStation = async (user_id, station_i
 
     // Remove existing entries to avoid duplicates
     await supabase
-        .from('working_station_service')
+        .from('workstation_service')
         .delete()
         .eq('station_id', station_id)
         .eq('salon_id', salon_id);
@@ -135,7 +153,7 @@ export const handleAddOrEditServicesToWorkingStation = async (user_id, station_i
     }));
 
     const { data, error } = await supabase
-        .from('working_station_service')
+        .from('workstation_service')
         .insert(inserts)
         .select();
 

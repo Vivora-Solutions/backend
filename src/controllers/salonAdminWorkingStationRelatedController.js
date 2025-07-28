@@ -29,9 +29,11 @@ export const createWorkingStation = async (req, res) => {
         const result = await handleCreateWorkingStation(user_id, station_name);
         res.status(201).json(result);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Error in createWorkingStation:', err); // ✅ Log full error
+        res.status(500).json({ error: err.message || 'Something went wrong' });
     }
 };
+
 
 export const editWorkingStation = async (req, res) => {
     try {

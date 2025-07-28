@@ -19,7 +19,7 @@ router.use(requireAuth);
 
 // Create a booking by a user
 router.post('/', createBooking);                                              // POST {{base_url}}/api/booking      
-// Get all ongoin bookings of a user in the status of pending and confirmed
+// Get all ongoing bookings of a user in the status of pending and confirmed
 router.get('/', getUserBookings);                                             // GET {{base_url}}/api/booking (ongoing bookings)
 // GET all bookings of a user without pending and confirmed ones                                
 router.get('/history', getBookingHistory);                                    // GET {{base_url}}/api/booking/history

@@ -5,24 +5,44 @@ import {
   handleCancelBooking,
   handleRescheduleBooking,
   handleGetBookingHistory,
-  handleCreateBookingWithServices
+  //handleCreateBookingWithServices
 } from '../services/bookingService.js'
 
 // controllers/bookingController.js
+import { handleCreateBooking, handleDeleteBooking } from '../services/bookingService.js';
+
 export const createBooking = async (req, res) => {
   try {
     const user_id = req.userId;
     const { service_ids, booking_start_datetime, notes } = req.body;
 
-    if (!user_id) return res.status(401).json({ error: 'Unauthorized' });
+    if (!user_id || !service_ids || !booking_start_datetime) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
-    const result = await handleCreateBookingWithServices(user_id, service_ids, booking_start_datetime, notes);
+    const result = await handleCreateBooking(user_id, service_ids, booking_start_datetime, notes);
     res.status(201).json(result);
-  } catch (error) {
-    console.error('[Booking Error]', error.message);
-    res.status(400).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
+
+export const deleteBooking = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    const { booking_id } = req.params;
+
+    if (!booking_id) {
+      return res.status(400).json({ error: 'Booking ID is required' });
+    }
+
+    const result = await handleDeleteBooking(user_id, booking_id);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 
 export const getUserBookings = async (req, res) => {
