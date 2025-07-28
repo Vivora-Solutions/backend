@@ -172,3 +172,148 @@ export const getAllServicesBySalonId = async (salonId) => {
   return data;
 };
 
+
+
+// Get free time slots
+const DAY_OF_WEEK = {
+  0: 0, // Sunday
+  1: 1, // Monday
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6
+};
+
+const parseTime = (timeStr, dateStr) => {
+  const [hours, minutes] = timeStr.split(':');
+  const date = new Date(`${dateStr}T00:00:00Z`);
+  date.setUTCHours(parseInt(hours), parseInt(minutes));
+  return date;
+};
+
+const subtractTimeRanges = (baseRange, busyRanges) => {
+  const free = [];
+  let [start, end] = baseRange;
+
+  busyRanges
+      .filter(([bStart, bEnd]) => bStart < end && bEnd > start)
+      .sort((a, b) => a[0] - b[0])
+      .forEach(([bStart, bEnd]) => {
+        if (bStart > start) free.push([start, new Date(bStart)]);
+        start = bEnd > start ? new Date(bEnd) : start;
+      });
+
+  if (start < end) free.push([start, end]);
+  return free;
+};
+
+const splitIntoSlots = (freeRanges, durationMinutes) => {
+  const slots = [];
+  const durationMs = durationMinutes * 60 * 1000;
+
+  for (const [start, end] of freeRanges) {
+    let curr = new Date(start);
+    while (curr.getTime() + durationMs <= end.getTime()) {
+      slots.push({
+        start: new Date(curr),
+        end: new Date(curr.getTime() + durationMs)
+      });
+      curr = new Date(curr.getTime() + 15 * 60 * 1000); // 15-min step
+    }
+  }
+
+  return slots;
+};
+
+const isWorkstationAvailable = async (salonId, start, end) => {
+  const { data: workstations, error: wsError } = await supabase
+      .from('workstation')
+      .select('workstation_id')
+      .eq('salon_id', salonId);
+
+  if (wsError) throw new Error(wsError.message);
+
+  for (const ws of workstations) {
+    const { data: bookings, error: bookingErr } = await supabase
+        .from('booking')
+        .select('booking_id')
+        .eq('workstation_id', ws.workstation_id)
+        .or('status.eq.confirmed,status.eq.pending')
+        .filter('booking_start_datetime', '<', end.toISOString())
+        .filter('booking_end_datetime', '>', start.toISOString());
+
+    if (bookingErr) throw new Error(bookingErr.message);
+
+    if (bookings.length === 0) return true; // at least one is free
+  }
+
+  return false;
+};
+
+export const getAvailableTimeSlotss = async ({ service_ids, stylist_id, salon_id, date }) => {
+  if (!Array.isArray(service_ids) || !stylist_id || !salon_id || !date) {
+    throw new Error('Missing required input: service_ids, stylist_id, salon_id, or date');
+  }
+
+  const dayOfWeek = new Date(date).getUTCDay(); // 0 = Sunday
+
+  // 1. Get total duration from services
+  const { data: services, error: serviceError } = await supabase
+      .from('service')
+      .select('duration_minutes')
+      .in('service_id', service_ids);
+
+  if (serviceError) throw new Error(serviceError.message);
+  if (!services || services.length === 0) throw new Error('Invalid service_ids');
+
+  const totalDuration = services.reduce((sum, s) => sum + s.duration_minutes, 0);
+
+  // 2. Get working blocks for stylist
+  const { data: scheduleBlocks, error: scheduleError } = await supabase
+      .from('stylist_work_schedule')
+      .select('start_time_daily, end_time_daily')
+      .eq('stylist_id', stylist_id)
+      .eq('day_of_week', dayOfWeek);
+
+  if (scheduleError) throw new Error(scheduleError.message);
+  if (!scheduleBlocks || scheduleBlocks.length === 0) {
+    throw new Error('Stylist not available on selected day');
+  }
+
+  // 3. Get existing bookings
+  const { data: bookings, error: bookingError } = await supabase
+      .from('booking')
+      .select('booking_start_datetime, booking_end_datetime')
+      .eq('stylist_id', stylist_id)
+      .eq('salon_id', salon_id)
+      .or('status.eq.confirmed,status.eq.pending')
+      .gte('booking_start_datetime', `${date}T00:00:00Z`)
+      .lt('booking_start_datetime', `${date}T23:59:59Z`);
+
+  if (bookingError) throw new Error(bookingError.message);
+
+  const busyTimes = bookings.map(b => [
+    new Date(b.booking_start_datetime),
+    new Date(b.booking_end_datetime)
+  ]);
+
+  // 4. Compute free slots
+  const allFreeSlots = [];
+
+  for (const block of scheduleBlocks) {
+    const start = parseTime(block.start_time_daily, date);
+    const end = parseTime(block.end_time_daily, date);
+    const freeBlocks = subtractTimeRanges([start, end], busyTimes);
+    const possibleSlots = splitIntoSlots(freeBlocks, totalDuration);
+
+    for (const slot of possibleSlots) {
+      const available = await isWorkstationAvailable(salon_id, slot.start, slot.end);
+      if (available) {
+        allFreeSlots.push(slot);
+      }
+    }
+  }
+
+  return allFreeSlots;
+};
