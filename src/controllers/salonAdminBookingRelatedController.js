@@ -4,21 +4,32 @@ import {
     handleDeleteBooking,
 } from '../services/salonAdminBookingRelatedService.js';
 
+
 export const createBooking = async (req, res) => {
   try {
-    const user_id = req.userId;
-    const bookingData = req.body;
+    const user_id = req.userId; // injected from requireAuth middleware
+    const { service_ids, booking_start_datetime, notes } = req.body;
 
-    if (!user_id || !bookingData || !bookingData.booking_start_datetime || !bookingData.services?.length) {
-      return res.status(400).json({ error: 'Missing required booking details or services' });
+    if (!user_id) {
+      return res.status(401).json({ error: 'Unauthorized: Missing user ID' });
     }
 
-    const result = await handleCreateBooking(user_id, bookingData);
+    if (!Array.isArray(service_ids) || service_ids.length === 0) {
+      return res.status(400).json({ error: 'At least one service must be selected.' });
+    }
+
+    if (!booking_start_datetime) {
+      return res.status(400).json({ error: 'Booking start datetime is required.' });
+    }
+
+    const result = await handleCreateBooking(user_id, service_ids, booking_start_datetime, notes);
     res.status(201).json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Booking creation error:', err);
+    res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
 };
+
 
 export const updateBooking = async (req, res) => {
   try {
