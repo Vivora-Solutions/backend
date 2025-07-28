@@ -1,16 +1,51 @@
 import supabase from '../config/supabaseClient.js';
 
 export const fetchAllSalon = async () => {
-  const { data, error } = await supabase.from('salon').select('*');
+  const { data, error } = await supabase
+      .from('salon')
+      .select(`
+      salon_id,
+      salon_name,
+      location,
+      salon_contact_number,
+      salon_address,
+      salon_description,
+      is_approved,
+      salon_logo_link,
+      average_rating
+    `)
+      .eq('is_approved', true);
+
   if (error) throw new Error(error.message);
   return data;
 };
 
+
 export const fetchSalonById = async (id) => {
-  const { data, error } = await supabase.from('salon').select('*').eq('salon_id', id).single();
-  if (error) throw new Error('Salon not found');
+  const { data, error } = await supabase
+      .from('salon')
+      .select(`
+      salon_id,
+      salon_name,
+      location,
+      salon_contact_number,
+      salon_email,
+      salon_address,
+      salon_description,
+      salon_logo_link,
+      average_rating,
+      banner_images (
+        image_link
+      )
+    `)
+      .eq('salon_id', id)
+      .eq('is_approved', true)
+      .single();
+
+  if (error || !data) throw new Error('Salon not found or not approved');
   return data;
 };
+
 
 export const fetchSalonsByLocation = async ({ latitude, longitude }, radius = 5000) => {
   if (!latitude || !longitude) {
@@ -71,6 +106,7 @@ export const fetchStylistsBySalon = async (salonId) => {
   if (error) throw new Error(error.message);
   return data;
 };
+
 
 export const fetchStylistAvailability = async (stylistId) => {
   const { data, error } = await supabase
