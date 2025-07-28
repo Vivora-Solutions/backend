@@ -7,7 +7,7 @@ import {
   getSalonsByType,
   getStylistsBySalonId,
   getAvailableTimeSlots,
-  getSalonsByServiceName, fetchSalonServices
+  getSalonsByServiceName, fetchSalonServices, fetchAvailableTimeSlots
 } from '../controllers/salonController.js';
 
 const router = express.Router();
@@ -30,5 +30,9 @@ router.get('/:id/stylists', getStylistsBySalonId);                    //http://l
 router.get('/stylist/:stylistId/availability', getAvailableTimeSlots);  //http://localhost:3000/api/salons/stylist/b5991531-a0e1-460e-bce9-3dee1056d3b6/availability
 // Get all services of a salon
 router.get('/:salonId/services', fetchSalonServices);
+
+
+// Get available time slots
+router.post('/available-time-slots', fetchAvailableTimeSlots);
 
 export default router;
