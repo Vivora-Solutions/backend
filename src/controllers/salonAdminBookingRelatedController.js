@@ -7,12 +7,8 @@ import {
 
 export const createBooking = async (req, res) => {
   try {
-    const user_id = req.userId; // injected from requireAuth middleware
-    const { service_ids, booking_start_datetime, notes } = req.body;
 
-    if (!user_id) {
-      return res.status(401).json({ error: 'Unauthorized: Missing user ID' });
-    }
+    const { non_online_customer_name, non_online_customer_mobile_number,service_ids, booking_start_datetime, notes } = req.body;
 
     if (!Array.isArray(service_ids) || service_ids.length === 0) {
       return res.status(400).json({ error: 'At least one service must be selected.' });
@@ -22,7 +18,7 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ error: 'Booking start datetime is required.' });
     }
 
-    const result = await handleCreateBooking(user_id, service_ids, booking_start_datetime, notes);
+    const result = await handleCreateBooking(non_online_customer_name,non_online_customer_mobile_number, service_ids, booking_start_datetime, notes);
     res.status(201).json(result);
   } catch (err) {
     console.error('Booking creation error:', err);
