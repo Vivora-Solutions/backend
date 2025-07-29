@@ -115,7 +115,7 @@ router.get('/stylist/:stylist_id/services', requireAuth, getServicesOfStylist);
 
 
 
-router.get('/service',requireAuth,getAllServices);
+router.get('/service',requireAuth,  getAllServices);
 // Add new service to the salon
 router.post('/service', requireAuth, addService);
 // Delete a specific service by ID
