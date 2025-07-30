@@ -1,92 +1,160 @@
 import supabase from '../config/supabaseClient.js';
 import bcrypt from 'bcrypt';
 
-export const handleUserRegistration = async (body) => {
-  const {
-    email,
-    password,
-    role,
-    first_name,
-    last_name,
-    salon_name,
-    salon_address,
-    date_of_birth,
-    location,
-    contact_number,
-    salon_description,
-    salon_logo_link,
-  } = body;
 
-  // Hash the password BEFORE saving
-  const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
+import supabaseAdmin from '../config/supabaseAdminClient.js'; // service client
 
-  // Convert location to PostGIS Point (WKT format)
-  let locationWKT = null;
-  if (location && location.latitude && location.longitude) {
-    locationWKT = `SRID=4326;POINT(${location.longitude} ${location.latitude})`;
-  }
-
-  // 1. Create user with Supabase Auth
-  const { data: authData, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-
-  if (signUpError) throw new Error(signUpError.message);
-  const supabaseUser = authData.user;
-  if (!supabaseUser) throw new Error('User registration failed.');
-
-  // 2. Insert into "user" table with hashed password
-  const { data: userRow, error: userInsertError } = await supabase
-    .from('user')
-    .insert({
-      user_id: supabaseUser.id,
-      email,
-      password_hash: hashedPassword,
-      role,
-    })
-    .select()
-    .single();
-
-  if (userInsertError) throw new Error(userInsertError.message);
-
-  // 3. Insert into customer or salon table
-  if (role === 'customer') {
-    const { error: customerInsertError } = await supabase
-      .from('customer')
-      .insert({
-        user_id: userRow.user_id,
+export const registerCustomer = async (body) => {
+    const {
+        email,
+        password,
         first_name,
         last_name,
         date_of_birth,
-        location: locationWKT, 
-        contact_number
-      });
+        location,
+        contact_number,
+    } = body;
 
-    if (customerInsertError) throw new Error(customerInsertError.message);
-  } else if (role === 'salon_admin') {
-    const { error: salonInsertError } = await supabase
-      .from('salon')
-      .insert({
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const locationWKT =
+        location && location.latitude && location.longitude
+            ? `SRID=4326;POINT(${location.longitude} ${location.latitude})`
+            : null;
+
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+    });
+
+    if (signUpError) throw new Error(signUpError.message);
+    const supabaseUser = authData.user;
+    if (!supabaseUser) throw new Error('User registration failed.');
+
+    let userRow;
+    try {
+        const { data, error: userInsertError } = await supabase
+            .from('user')
+            .insert({
+                user_id: supabaseUser.id,
+                email,
+                password_hash: hashedPassword,
+                role: 'customer',
+            })
+            .select()
+            .single();
+
+        if (userInsertError) throw new Error(userInsertError.message);
+        userRow = data;
+
+        const { error: customerInsertError } = await supabase
+            .from('customer')
+            .insert({
+                user_id: userRow.user_id,
+                first_name,
+                last_name,
+                date_of_birth,
+                location: locationWKT,
+                contact_number,
+            });
+
+        if (customerInsertError) throw new Error(customerInsertError.message);
+
+        return {
+            message: 'Customer registration successful. Please check your email to confirm.',
+            user_id: userRow.user_id,
+            role: 'customer',
+        };
+    } catch (err) {
+        // Delete Supabase Auth user using service role
+        await supabaseAdmin.auth.admin.deleteUser(supabaseUser.id);
+        // Delete user row if created
+        if (userRow?.user_id) {
+            await supabase.from('user').delete().eq('user_id', userRow.user_id);
+        }
+        throw new Error(`Customer registration failed: ${err.message}`);
+    }
+};
+
+
+
+
+export const registerSalon = async (body) => {
+    const {
+        email,
+        password,
         salon_name,
-        location: locationWKT,
-        salon_contact_number: contact_number,
-        salon_email: email,
         salon_address,
         salon_description,
         salon_logo_link,
-        admin_user_id: userRow.user_id,
-      });
+        location,
+        contact_number,
+    } = body;
 
-    if (salonInsertError) throw new Error(salonInsertError.message);
-  }
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  return {
-    message: 'Registration successful. Please check your email to confirm.',
-    user_id: userRow.user_id,
-    role,
-  };
+    const locationWKT =
+        location && location.latitude && location.longitude
+            ? `SRID=4326;POINT(${location.longitude} ${location.latitude})`
+            : null;
+
+    // Step 1: Create Auth User
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+    });
+
+    if (signUpError) throw new Error(signUpError.message);
+    const supabaseUser = authData.user;
+    if (!supabaseUser) throw new Error('User registration failed.');
+
+    let userRow;
+    try {
+        // Step 2: Insert into user table
+        const { data, error: userInsertError } = await supabase
+            .from('user')
+            .insert({
+                user_id: supabaseUser.id,
+                email,
+                password_hash: hashedPassword,
+                role: 'salon_admin',
+            })
+            .select()
+            .single();
+
+        if (userInsertError) throw new Error(userInsertError.message);
+        userRow = data;
+
+        // Step 3: Insert into salon table
+        const { error: salonInsertError } = await supabase.from('salon').insert({
+            salon_name,
+            location: locationWKT,
+            salon_contact_number: contact_number,
+            salon_email: email,
+            salon_address,
+            salon_description,
+            salon_logo_link,
+            admin_user_id: userRow.user_id,
+        });
+
+        if (salonInsertError) throw new Error(salonInsertError.message);
+
+        return {
+            message: 'Salon registration successful. Please check your email to confirm.',
+            user_id: userRow.user_id,
+            role: 'salon_admin',
+        };
+    } catch (err) {
+        // ROLLBACK: Delete auth user
+        await supabaseAdmin.auth.admin.deleteUser(supabaseUser.id);
+        // ROLLBACK: Delete user table row if created
+        if (userRow?.user_id) {
+            await supabase.from('user').delete().eq('user_id', userRow.user_id);
+        }
+        throw new Error(`Salon registration failed: ${err.message}`);
+    }
 };
 
 
@@ -140,4 +208,20 @@ export const handleTokenRefresh = async (refresh_token) => {
     session: data.session,
     user: data.user,
   };
+};
+
+
+
+export const fetchAuthenticatedUserDetails = async (user_id) => {
+    const { data, error } = await supabase
+        .from('user')
+        .select('email, role')
+        .eq('user_id', user_id)
+        .single();
+
+    if (error) {
+        throw new Error('Failed to fetch user details: ' + error.message);
+    }
+
+    return data;
 };

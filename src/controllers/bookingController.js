@@ -4,7 +4,7 @@ import {
   handleUpdateBooking,
   handleCancelBooking,
   handleRescheduleBooking,
-  handleGetBookingHistory,
+  handleGetBookingHistory, getStylistsForAllServices,
   //handleCreateBookingWithServices
 } from '../services/bookingService.js'
 
@@ -14,13 +14,13 @@ import { handleCreateBooking, handleDeleteBooking } from '../services/bookingSer
 export const createBooking = async (req, res) => {
   try {
     const user_id = req.userId;
-    const { service_ids, booking_start_datetime, notes } = req.body;
+    const { stylist_id , service_ids, booking_start_datetime, notes } = req.body;
 
-    if (!user_id || !service_ids || !booking_start_datetime) {
+    if (!user_id || !service_ids || !booking_start_datetime || !stylist_id) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const result = await handleCreateBooking(user_id, service_ids, booking_start_datetime, notes);
+    const result = await handleCreateBooking(user_id, stylist_id, service_ids, booking_start_datetime, notes);
     res.status(201).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -143,3 +143,28 @@ export const getBookingHistory = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
+export const fetchStylistsBySalonAndServices = async (req, res) => {
+  const { salonId, serviceIds } = req.body;
+
+  if (!salonId || !Array.isArray(serviceIds) || serviceIds.length === 0) {
+    return res.status(400).json({
+      error: 'salonId and non-empty serviceIds array are required in the body.',
+    });
+  }
+
+  try {
+    const stylists = await getStylistsForAllServices(salonId, serviceIds);
+    return res.status(200).json({ success: true, data: stylists });
+  } catch (error) {
+    console.error('Error fetching eligible stylists:', error.message);
+    return res.status(500).json({ error: 'Failed to fetch eligible stylists.' });
+  }
+};
+
+
+
+
