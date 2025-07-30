@@ -7,8 +7,8 @@ import authRoutes from './routes/authRoutes.js';
 import salonAdminRoutes from './routes/salonAdminRoutes.js';
 import superAdminRoutes from './routes/superAdminRoutes.js';
 import salonRoutes from './routes/salonRoutes.js';
-import reviewRoutes from './routes/reviewRoutes.js';
-import bookingRoutes from './routes/bookingRoutes.js';
+import userBookingRoutes from "./routes/userBookingRoutes.js";
+import userReviewRoutes from "./routes/UserReviewRoutes.js";
 
 dotenv.config();
 
@@ -27,10 +27,11 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/salon-admin', salonAdminRoutes);
-app.use('/api/salons', salonRoutes);
-app.use('/api/review', reviewRoutes);
 app.use('/api/super-admin', superAdminRoutes);
-app.use('/api/bookings', bookingRoutes);
+
+app.use('/api/salons', salonRoutes);
+app.use('/api/review', userReviewRoutes);
+app.use('/api/bookings', userBookingRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

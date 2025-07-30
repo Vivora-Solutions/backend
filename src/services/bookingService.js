@@ -2,6 +2,7 @@ import supabase from '../config/supabaseClient.js';
 
 export const handleCreateBooking = async (
     user_id,
+    stylist_id,
     service_ids,
     booking_start_datetime,
     notes = null
@@ -10,6 +11,7 @@ export const handleCreateBooking = async (
 
   console.log("📥 Booking request received", {
     user_id,
+    stylist_id,
     service_ids,
     booking_start_datetime,
     notes,
@@ -41,26 +43,26 @@ export const handleCreateBooking = async (
 
     const salon_id = salonIds[0];
 
-    // 2. Find a common stylist for all selected services
-    const { data: stylistMap, error: stylistErr } = await client
-        .from("stylist_service")
-        .select("stylist_id")
-        .in("service_id", service_ids)
-        .eq("salon_id", salon_id);
+    // // 2. Find a common stylist for all selected services
+    // const { data: stylistMap, error: stylistErr } = await client
+    //     .from("stylist_service")
+    //     .select("stylist_id")
+    //     .in("service_id", service_ids)
+    //     .eq("salon_id", salon_id);
+    //
+    // if (stylistErr) throw new Error("Error fetching stylist-service mapping: " + stylistErr.message);
+    //
+    // const stylistCounter = {};
+    // stylistMap.forEach((s) => {
+    //   stylistCounter[s.stylist_id] = (stylistCounter[s.stylist_id] || 0) + 1;
+    // });
 
-    if (stylistErr) throw new Error("Error fetching stylist-service mapping: " + stylistErr.message);
+    //const stylist_id = Object.entries(stylistCounter).find(([_, count]) => count === service_ids.length)?.[0];
 
-    const stylistCounter = {};
-    stylistMap.forEach((s) => {
-      stylistCounter[s.stylist_id] = (stylistCounter[s.stylist_id] || 0) + 1;
-    });
-
-    const stylist_id = Object.entries(stylistCounter).find(([_, count]) => count === service_ids.length)?.[0];
-
-    if (!stylist_id) {
-      console.error("❌ No stylist assigned to all selected services");
-      throw new Error("Selected services must be handled by the same stylist.");
-    }
+    // if (!stylist_id) {
+    //   console.error("❌ No stylist assigned to all selected services");
+    //   throw new Error("Selected services must be handled by the same stylist.");
+    // }
 
     // 3. Check stylist is active
     const { data: stylist, error: stylistActiveErr } = await client
@@ -535,3 +537,44 @@ export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
     }
   };
 };
+
+
+
+// Get all stylists in a salon who can do all provided services
+export const getStylistsForAllServices = async (salonId, serviceIds) => {
+  if (!salonId || !Array.isArray(serviceIds) || serviceIds.length === 0) {
+    throw new Error('Salon ID and a non-empty array of service IDs are required.');
+  }
+
+  const { data, error } = await supabase
+      .from('stylist_service')
+      .select('stylist_id')
+      .eq('salon_id', salonId)
+      .in('service_id', serviceIds);
+
+  if (error) throw new Error(error.message);
+
+  const stylistCountMap = {};
+  data.forEach(({ stylist_id }) => {
+    stylistCountMap[stylist_id] = (stylistCountMap[stylist_id] || 0) + 1;
+  });
+
+  const eligibleStylistIds = Object.entries(stylistCountMap)
+      .filter(([_, count]) => count === serviceIds.length)
+      .map(([id]) => id);
+
+  if (eligibleStylistIds.length === 0) return [];
+
+  // ✅ Only select stylist_id and stylist_name now
+  const { data: stylistDetails, error: stylistError } = await supabase
+      .from('stylist')
+      .select('stylist_id, stylist_name, profile_pic_link')
+      .in('stylist_id', eligibleStylistIds)
+      .eq('salon_id', salonId)
+      .eq('is_active', true);
+
+  if (stylistError) throw new Error(stylistError.message);
+
+  return stylistDetails;
+};
+

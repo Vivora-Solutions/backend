@@ -1,27 +1,60 @@
-import { 
-  handleUserRegistration, 
+import {
   handleUserLogin,
   handleUserLogout,
-  handleTokenRefresh  
+  handleTokenRefresh,
+  fetchAuthenticatedUserDetails,
+  registerCustomer,
+  registerSalon
 } from '../services/authService.js';
 
-export const registerUser = async (req, res) => {
+// export const registerUser = async (req, res) => {
+//   try {
+//     const userData = await handleUserRegistration(req.body);
+//     res.status(201).json(userData);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+
+
+// export const registerUser = async (req, res) => {
+//   const body = req.body;
+//
+//   try {
+//     let result;
+//     if (body.role === 'customer') {
+//       result = await registerCustomer(body);
+//     } else if (body.role === 'salon_admin') {
+//       result = await registerSalon(body);
+//     } else {
+//       throw new Error('Invalid role');
+//     }
+//
+//     res.status(200).json(result);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// };
+
+
+export const registerCustomerController = async (req, res) => {
   try {
-    const userData = await handleUserRegistration(req.body);
-    res.status(201).json(userData);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const result = await registerCustomer(req.body);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 
-// export const loginUser = async (req, res) => {
-//   try {
-//     const sessionData = await handleUserLogin(req.body);
-//     res.status(200).json(sessionData);
-//   } catch (error) {
-//     res.status(401).json({ error: error.message });
-//   }
-// };
+export const registerSalonController = async (req, res) => {
+  try {
+    const result = await registerSalon(req.body);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
 
 
 export const loginUser = async (req, res) => {
@@ -68,5 +101,20 @@ export const refreshToken = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     res.status(401).json({ error: error.message });
+  }
+};
+
+
+
+export const getAuthenticatedUser = async (req, res) => {
+  try {
+    const user = await fetchAuthenticatedUserDetails(req.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching authenticated user:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };

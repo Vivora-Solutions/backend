@@ -115,16 +115,16 @@ router.get('/stylist/:stylist_id/services', requireAuth, getServicesOfStylist);
 
 
 
-router.get('/service',requireAuth,  getAllServices);
+router.get('/services',requireAuth,  getAllServices);
 // Add new service to the salon
-router.post('/service', requireAuth, addService);
+router.post('/services', requireAuth, addService);
 // Delete a specific service by ID
 // router.delete('/service/:serviceId',  requireAuth, deleteService);
 // Update price of a specific service
-router.put('/service/:serviceId/price', requireAuth, updateServicePrice);
+router.put('/services/:serviceId/price', requireAuth, updateServicePrice);
 // Update duration of a specific service
-router.put('/service/:serviceId/duration',  requireAuth, updateServiceDuration);
-router.put('/service/:serviceId', requireAuth, updateService);
+router.put('/services/:serviceId/duration',  requireAuth, updateServiceDuration);
+router.put('/services/:serviceId', requireAuth, updateService);
 
 
 
