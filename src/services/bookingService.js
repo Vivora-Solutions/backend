@@ -473,6 +473,50 @@ export const handleRescheduleBooking = async (userId, bookingId, newStartDateTim
   return data;
 };
 
+// export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
+//   const offset = (page - 1) * limit;
+  
+//   const { data, error, count } = await supabase
+//     .from('booking')
+//     .select(`
+//       booking_id,
+//       salon_id,
+//       stylist_id,
+//       booking_start_datetime,
+//       booking_end_datetime,
+//       total_duration_minutes,
+//       total_price,
+//       status,
+//       booked_at,
+//       booked_mode,
+//       notes,
+//       salon (
+//         salon_name,
+//         salon_address
+//       ),
+//       stylist (
+//         stylist_name
+
+//       )
+//     `, { count: 'exact' })
+//     .eq('user_id', userId)
+//     .in('status', ['completed', 'cancelled', 'no_show'])
+//     .order('booking_start_datetime', { ascending: false })
+//     .range(offset, offset + limit - 1);
+    
+//   if (error) throw new Error(error.message);
+  
+//   return {
+//     data,
+//     pagination: {
+//       page,
+//       limit,
+//       total: count,
+//       totalPages: Math.ceil(count / limit)
+//     }
+//   };
+// };
+
 export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
   
@@ -496,7 +540,13 @@ export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
       ),
       stylist (
         stylist_name
-
+      ),
+      customer_reviews (
+        review_id,
+        star_rating,
+        review_text,
+        created_at,
+        updated_at
       )
     `, { count: 'exact' })
     .eq('user_id', userId)
@@ -516,7 +566,6 @@ export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
     }
   };
 };
-
 
 
 // Get all stylists in a salon who can do all provided services
