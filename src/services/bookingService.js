@@ -366,19 +366,19 @@ export const handleCancelBooking = async (userId, bookingId) => {
     .from('booking')
     .select('booking_start_datetime, status')
     .eq('booking_id', bookingId)
-    .eq('user_id', userId)
+    .eq('user_id', userId).select()
     .single();
-    
+  console.log("🔍 Booking Check:", bookingCheck);
   if (checkError) {
     if (checkError.code === 'PGRST116') return null;
     throw new Error(checkError.message);
   }
-  
+  console.log("🔍 Booking Check:", bookingCheck);
   const startTime = new Date(bookingCheck.booking_start_datetime);
   const now = new Date();
   const timeDifference = startTime - now;
   const hoursUntilBooking = timeDifference / (1000 * 60 * 60);
-  
+  console.log("🔍 Hours until booking:", hoursUntilBooking);
   if (!['pending', 'confirmed'].includes(bookingCheck.status)) {
     throw new Error('Booking cannot be cancelled');
   }
@@ -386,36 +386,15 @@ export const handleCancelBooking = async (userId, bookingId) => {
   if (hoursUntilBooking < 2) {
     throw new Error('Booking can only be cancelled at least 2 hours before the scheduled time');
   }
-  
+
   const { data, error } = await supabase
     .from('booking')
     .update({ 
       status: 'cancelled'
     })
     .eq('booking_id', bookingId)
-    .eq('user_id', userId)
-    .select(`
-      booking_id,
-      salon_id,
-      stylist_id,
-      booking_start_datetime,
-      booking_end_datetime,
-      total_duration_minutes,
-      total_price,
-      status,
-      booked_at,
-      booked_mode,
-      notes,
-      salon (
-        salon_name,
-        address
-      ),
-      stylist (
-        stylist_name
-      )
-    `)
-    .single();
-    
+    .eq('user_id', userId).select().single();
+  console.log("🔍 Booking cancellation result:", error);
   if (error) throw new Error(error.message);
   return data;
 };
