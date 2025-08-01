@@ -261,6 +261,7 @@ export const getAvailableTimeSlotss = async ({
     );
   }
   const dayOfWeek = new Date(date).getUTCDay(); // 0 = Sunday
+  console.log("service_ids:", service_ids, " stylist_id:", stylist_id, "salon_id:", salon_id, "date:", date, "dayOfWeek:", dayOfWeek);
   // 1. Get total duration from services
   const { data: services, error: serviceError } = await supabase
     .from("service")
@@ -278,6 +279,21 @@ export const getAvailableTimeSlotss = async ({
   );
   console.log("Total duration:", totalDuration);
 
+  //1.5 Check that the stylist have taken a leave
+  ;
+  const { data: leaves, error: leaveError } = await supabase
+    .from("stylist_leave").select(`
+date,stylist_id
+  `)
+    .eq("stylist_id", stylist_id).eq("date", date);
+
+  if (leaveError) throw new Error(leaveError.message);
+  if (leaves && leaves.length > 0) {
+    throw new Error("Stylist is on leave on the selected date");
+  }
+
+  console.log("Leaves for stylist:", leaves);
+
   // 2. Get working blocks for stylist
   const { data: scheduleBlocks, error: scheduleError } = await supabase
     .from("stylist_schedule_day")
@@ -288,16 +304,21 @@ export const getAvailableTimeSlotss = async ({
       start_time_daily,
       end_time_daily,
       stylist_id
-    )
+    ),
+    day_of_week,
+    is_every_week,
+    date
   `
     )
-    .eq("day_of_week", dayOfWeek)
+    // .eq("day_of_week", dayOfWeek)
     .eq("stylist_work_schedule.stylist_id", stylist_id);
 
   if (scheduleError) throw new Error(scheduleError.message);
   if (!scheduleBlocks || scheduleBlocks.length === 0) {
     throw new Error("Stylist not available on selected day");
   }
+
+  console.log("Schedule blocks:", scheduleBlocks);
 
   const updatedScheduleBlocks = scheduleBlocks
     .filter((block) => block.stylist_work_schedule)
@@ -310,9 +331,32 @@ export const getAvailableTimeSlotss = async ({
       },
     }));
 
-  console.log("Schedule blocks:", updatedScheduleBlocks);
+  console.log("Updated schedule blocks:", updatedScheduleBlocks);
 
-  if (updatedScheduleBlocks.length === 0) {
+  const extra_schedules_for_day = [];
+  const normal_Schedules_for_day = [];
+
+  for (const block of updatedScheduleBlocks) {
+    if (block.is_every_week || block.day_of_week === dayOfWeek) {
+      normal_Schedules_for_day.push(block);
+    } else if (block.date && new Date(block.date).toISOString().split("T")[0] === date) {
+      extra_schedules_for_day.push(block);
+    }
+  }
+  console.log("Normal schedules for day:", normal_Schedules_for_day);
+  console.log("Extra schedules for day:", extra_schedules_for_day);
+
+  const priorityBlocks = [];
+
+  if (extra_schedules_for_day.length == 0) {
+    priorityBlocks.push(...normal_Schedules_for_day);
+  } else {
+    priorityBlocks.push(...extra_schedules_for_day);
+  }
+
+  console.log("Priority blocks:", priorityBlocks);
+
+  if (priorityBlocks.length === 0) {
     console.warn(
       `No working schedule found for stylist ${stylist_id} on ${date} (${dayOfWeek})`
     );
@@ -349,7 +393,7 @@ export const getAvailableTimeSlotss = async ({
   //   ]
   // ];
 
-  for (const block of updatedScheduleBlocks) {
+  for (const block of priorityBlocks) {
     const start = parseTime(block.stylist_work_schedule.start_time_daily, date);
     const end = parseTime(block.stylist_work_schedule.end_time_daily, date);
     // const freeBlocks = subtractTimeRanges([start, end], busyTimes);
