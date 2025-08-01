@@ -59,10 +59,15 @@ export const handleAddStylistSchedule = async (user_id, body) => {
 
   const { data, error: insertError } = await supabase
     .from('stylist_work_schedule')
-    .insert([{ stylist_id, day_of_week, start_time_daily, end_time_daily }])
+    .insert([{ stylist_id, start_time_daily, end_time_daily }])
     .select();
-
   if (insertError) throw new Error(insertError.message);
+  console.log("New schedule ID:", data[0].schedule_id);
+const { dataPart2, error: insertErrorPart2 } = await supabase
+  .from("stylist_schedule_day")
+  .insert([{ schedule_id: data[0].schedule_id, day_of_week }])
+  .select();
+  if (insertErrorPart2) throw new Error(insertErrorPart2.message);
   return { message: 'Schedule added successfully', data };
 };
 

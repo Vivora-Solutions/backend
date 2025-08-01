@@ -46,7 +46,8 @@ export const handleUpdateService = async (user_id, serviceId, serviceDetails) =>
     service_image_link,
     price,
     duration_minutes,
-    is_available
+    is_available,
+    show_price,
   } = serviceDetails;
   const { data, error } = await supabase
     .from('service')
@@ -57,6 +58,7 @@ export const handleUpdateService = async (user_id, serviceId, serviceDetails) =>
       price,
       duration_minutes,
       is_available,
+      show_price,
       updated_at: new Date()
     })
     .eq('service_id', serviceId)
