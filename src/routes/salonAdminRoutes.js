@@ -13,6 +13,7 @@ import {
 
 
 import {
+  getAllStylists,
   addStylist,
   deleteStylist,
   updateStylistName,
@@ -46,6 +47,7 @@ import {
   createBooking,
   updateBooking,
   deleteBooking,
+  getAllBookings,
 } from '../controllers/salonAdminBookingRelatedController.js';
 
 import { requireAuth } from '../middlewares/authMiddleware.js';
@@ -85,6 +87,7 @@ router.put('/images/:imageId', requireAuth, updateBannerImage);
 
 // 3.Stylist management
 
+router.get('/stylists', requireAuth, getAllStylists);
 // Add stylist
 router.post('/stylist', requireAuth, addStylist);
 // Delete stylist
@@ -141,13 +144,12 @@ router.put('/schedule/:scheduleId', requireAuth, updateStylistSchedule);
 
 
 // 5. Booking management
-
-// Create a booking per salon admin only access for that salon
-router.post('/booking', createBooking);
+router.get("/booking", requireAuth, getAllBookings);
+router.post('/booking', requireAuth, createBooking);
 // Edit details of a booking only for that salon admin
-router.put('/booking/:bookingId', updateBooking);
+router.put('/booking/:bookingId', requireAuth, updateBooking);
 // Delete a booking only for that salon admin have access
-router.delete('/booking/:bookingId', deleteBooking);
+router.delete('/booking/:bookingId', requireAuth, deleteBooking);
 
 
 
