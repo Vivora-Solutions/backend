@@ -46,7 +46,7 @@ export const handleDeleteStylist = async (user_id, stylist_id) => {
 
   const { data, error } = await supabase
     .from("stylist")
-    .delete()
+    .update({ is_active: false })
     .eq("stylist_id", stylist_id)
     .select();
 
@@ -72,6 +72,26 @@ export const handleUpdateStylistName = async (
 
   if (error) throw new Error(error.message);
   return { message: "Stylist name updated", data };
+};
+
+export const handleUpdateStylist = async (
+  user_id,
+  stylist_id,
+  data
+) => {
+  const salon_id = await getSalonIdByAdmin(user_id);
+  const stylistSalonId = await getStylistSalonId(stylist_id);
+
+  if (salon_id !== stylistSalonId) throw new Error("Unauthorized to update");
+
+  const { data2, error } = await supabase
+    .from("stylist")
+    .update({ ...data, updated_at: new Date() })
+    .eq("stylist_id", stylist_id)
+    .select();
+
+  if (error) throw new Error(error.message);
+  return { message: "Stylist updated", data: data2 };
 };
 
 export const handleUpdateStylistContact = async (

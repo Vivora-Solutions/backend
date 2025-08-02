@@ -24,7 +24,8 @@ import {
   deleteStylistBio,
   addServicesToStylist,
   deleteServicesFromStylist,
-  getServicesOfStylist
+  getServicesOfStylist,
+  updateStylist
 } from '../controllers/salonAdminStylistRelatedController.js';
 
 import {
@@ -92,6 +93,9 @@ router.get('/stylists', requireAuth, getAllStylists);
 router.post('/stylist', requireAuth, addStylist);
 // Delete stylist
 router.delete('/stylist/:stylist_id', requireAuth, deleteStylist);
+
+router.put('/stylist/:stylist_id', requireAuth, updateStylist);
+
 // Update stylist name
 router.put('/stylist/:stylist_id/name', requireAuth, updateStylistName);
 // Update stylist contact number
@@ -118,7 +122,7 @@ router.get('/stylist/:stylist_id/services', requireAuth, getServicesOfStylist);
 
 
 
-router.get('/services',requireAuth,  getAllServices);
+router.get('/services', requireAuth, getAllServices);
 // Add new service to the salon
 router.post('/services', requireAuth, addService);
 // Delete a specific service by ID
@@ -126,7 +130,7 @@ router.post('/services', requireAuth, addService);
 // Update price of a specific service
 router.put('/services/:serviceId/price', requireAuth, updateServicePrice);
 // Update duration of a specific service
-router.put('/services/:serviceId/duration',  requireAuth, updateServiceDuration);
+router.put('/services/:serviceId/duration', requireAuth, updateServiceDuration);
 router.put('/services/:serviceId', requireAuth, updateService);
 
 

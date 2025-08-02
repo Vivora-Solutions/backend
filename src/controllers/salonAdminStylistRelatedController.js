@@ -11,6 +11,7 @@ import {
   handleAddServicesToStylist,
   handleDeleteServicesFromStylist,
   handleGetServicesOfStylist,
+  handleUpdateStylist,
 } from "../services/salonAdminStylistRelatedServices.js";
 
 export const getAllStylists = async (req, res) => {
@@ -62,6 +63,23 @@ export const updateStylistName = async (req, res) => {
       return res.status(400).json({ error: "New name is required" });
 
     const result = await handleUpdateStylistName(user_id, stylist_id, new_name);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateStylist = async (req, res) => {
+  try {
+    console.log("Updating stylist details");
+    const user_id = req.userId;
+    const { stylist_id } = req.params;
+    const data = req.body;
+
+    if (!data)
+      return res.status(400).json({ error: "New data is required" });
+
+    const result = await handleUpdateStylist(user_id, stylist_id, data);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
