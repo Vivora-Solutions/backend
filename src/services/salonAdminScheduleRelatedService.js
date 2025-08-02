@@ -12,6 +12,39 @@ export const handleGetAllStylistsForSalon = async (user_id) => {
   return { message: 'Stylists fetched successfully', data: stylists };
 };
 
+export const handleGetStylistsForSchedule = async (stylist_id) => {
+  // console.log("Fetching stylist schedule for ID:", stylist_id);
+  // Get basic schedule
+  const { data: mainSchedule, error: scheduleError } = await supabase
+    .from('stylist_work_schedule')
+    .select('*')
+    .eq('stylist_id', stylist_id);
+  // console.log("Main schedule data:", mainSchedule);
+  // Get schedule days
+  const { data: scheduleDays, error: daysError } = await supabase
+    .from('stylist_schedule_day')
+    .select('*')
+    .in('schedule_id', mainSchedule?.map(s => s.schedule_id) || []);
+  // console.log("Schedule days data:", scheduleDays);
+  // Get leave days
+  const { data: leaveDays, error: leaveError } = await supabase
+    .from('stylist_leave')
+    .select('*')
+    .eq('stylist_id', stylist_id);
+  // console.log("Leave days data:", leaveDays);
+  // Combine results manually
+  const combinedData = mainSchedule?.map(schedule => ({
+    ...schedule,
+    stylist_schedule_day: scheduleDays?.filter(day => day.schedule_id === schedule.schedule_id),
+    stylist_leave: leaveDays?.filter(leave => leave.stylist_id === schedule.stylist_id)
+  }));
+
+  // console.log("Combined schedule data:", combinedData);
+  if (scheduleError || daysError || leaveError) {
+    throw new Error(scheduleError?.message || daysError?.message || leaveError?.message || 'Error fetching schedule data');
+  }
+  return { message: 'Stylist fetched successfully', data: combinedData };
+};
 
 export const handleToggleStylistActiveStatus = async (user_id, stylist_id, is_active) => {
   const adminSalonId = await getSalonIdByAdmin(user_id);
@@ -63,10 +96,10 @@ export const handleAddStylistSchedule = async (user_id, body) => {
     .select();
   if (insertError) throw new Error(insertError.message);
   console.log("New schedule ID:", data[0].schedule_id);
-const { dataPart2, error: insertErrorPart2 } = await supabase
-  .from("stylist_schedule_day")
-  .insert([{ schedule_id: data[0].schedule_id, day_of_week }])
-  .select();
+  const { dataPart2, error: insertErrorPart2 } = await supabase
+    .from("stylist_schedule_day")
+    .insert([{ schedule_id: data[0].schedule_id, day_of_week }])
+    .select();
   if (insertErrorPart2) throw new Error(insertErrorPart2.message);
   return { message: 'Schedule added successfully', data };
 };

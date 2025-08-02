@@ -1,8 +1,9 @@
 import {
-    handleGetAllStylistsForSalon,
-    handleToggleStylistActiveStatus,
-    handleAddStylistSchedule,
-    handleUpdateStylistSchedule,
+  handleGetAllStylistsForSalon,
+  handleToggleStylistActiveStatus,
+  handleAddStylistSchedule,
+  handleUpdateStylistSchedule,
+  handleGetStylistsForSchedule,
 } from '../services/salonAdminScheduleRelatedService.js';
 
 
@@ -15,6 +16,18 @@ export const getAllStylistsForSalon = async (req, res) => {
     }
 
     const result = await handleGetAllStylistsForSalon(user_id);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getStylistsForSchedule = async (req, res) => {
+  try {
+    // console.log("Fetching stylists for schedule...");
+    const { stylistId } = req.params;
+
+    const result = await handleGetStylistsForSchedule(stylistId);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
