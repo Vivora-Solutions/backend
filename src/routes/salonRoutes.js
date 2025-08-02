@@ -7,7 +7,8 @@ import {
   getSalonsByType,
   getStylistsBySalonId,
   getAvailableTimeSlots,
-  getSalonsByServiceName, fetchSalonServices, fetchAvailableTimeSlots
+  getSalonsByServiceName, fetchSalonServices, fetchAvailableTimeSlots,
+  fetchAvailableTimeSlotsSithum
 } from '../controllers/salonController.js';
 
 const router = express.Router();
@@ -34,5 +35,6 @@ router.get('/:salonId/services', fetchSalonServices);
 
 // Get available time slots
 router.post('/available-time-slots', fetchAvailableTimeSlots);
+router.post('/available-time-slots-sithum', fetchAvailableTimeSlotsSithum);
 
 export default router;
