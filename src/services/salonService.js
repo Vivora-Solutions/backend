@@ -310,7 +310,7 @@ date,stylist_id
     date
   `
     )
-    // .eq("day_of_week", dayOfWeek)
+    .eq("day_of_week", dayOfWeek)
     .eq("stylist_work_schedule.stylist_id", stylist_id);
 
   if (scheduleError) throw new Error(scheduleError.message);
@@ -394,6 +394,142 @@ date,stylist_id
   // ];
 
   for (const block of priorityBlocks) {
+    const start = parseTime(block.stylist_work_schedule.start_time_daily, date);
+    const end = parseTime(block.stylist_work_schedule.end_time_daily, date);
+    // const freeBlocks = subtractTimeRanges([start, end], busyTimes);
+    console.log("Start:", start);
+    console.log("End:", end);
+    console.log("Busy times:", busyTimes);
+    const freeBlocks = subtractTimeRanges([start, end], busyTimes);
+
+    const possibleSlots = splitIntoSlots(freeBlocks, totalDuration);
+    console.log("Possible slots:", possibleSlots.length);
+
+    for (const slot of possibleSlots) {
+      const available = await isWorkstationAvailable(
+        salon_id,
+        slot.start,
+        slot.end
+      );
+      if (available) {
+        allFreeSlots.push(slot);
+      }
+    }
+    console.log("Available slots for block:", block.schedule_id, allFreeSlots.length);
+  }
+
+  return allFreeSlots;
+};
+
+
+export const getAvailableTimeSlotsSithum = async ({
+  service_ids,
+  stylist_id,
+  salon_id,
+  date,
+}) => {
+  if (!Array.isArray(service_ids) || !stylist_id || !salon_id || !date) {
+    throw new Error(
+      "Missing required input: service_ids, stylist_id, salon_id, or date"
+    );
+  }
+  const dayOfWeek = new Date(date).getUTCDay(); // 0 = Sunday
+  console.log("service_ids:", service_ids, " stylist_id:", stylist_id, "salon_id:", salon_id, "date:", date, "dayOfWeek:", dayOfWeek);
+  // 1. Get total duration from services
+  const { data: services, error: serviceError } = await supabase
+    .from("service")
+    .select("duration_minutes")
+    .in("service_id", service_ids);
+
+  console.log("Services:", services);
+  if (serviceError) throw new Error(serviceError.message);
+  if (!services || services.length === 0)
+    throw new Error("Invalid service_ids");
+
+  const totalDuration = services.reduce(
+    (sum, s) => sum + s.duration_minutes,
+    0
+  );
+  console.log("Total duration:", totalDuration);
+
+  // 2. Get working blocks for stylist
+  const { data: scheduleBlocks, error: scheduleError } = await supabase
+    .from("stylist_schedule_day")
+    .select(
+      `
+    schedule_id,
+    stylist_work_schedule (
+      start_time_daily,
+      end_time_daily,
+      stylist_id
+    ),
+    day_of_week,
+    is_every_week,
+    date
+  `
+    )
+    .eq("day_of_week", dayOfWeek)
+    .eq("is_every_week", true)
+    .eq("stylist_work_schedule.stylist_id", stylist_id);
+
+  if (scheduleError) throw new Error(scheduleError.message);
+  if (!scheduleBlocks || scheduleBlocks.length === 0) {
+    throw new Error("Stylist not available on selected day");
+  }
+
+  console.log("Schedule blocks:", scheduleBlocks);
+
+  const updatedScheduleBlocks = scheduleBlocks
+    .filter((block) => block.stylist_work_schedule)
+    .map((block) => ({
+      ...block,
+      stylist_work_schedule: {
+        ...block.stylist_work_schedule,
+        start_time_daily: block.stylist_work_schedule.start_time_daily,
+        end_time_daily: block.stylist_work_schedule.end_time_daily,
+      },
+    }));
+
+  console.log("Updated schedule blocks:", updatedScheduleBlocks);
+
+  const { data: breakBlocks, error: breakError } = await supabase
+    .from("stylist_leave")
+    .select(
+      `
+    stylist_id,
+    day_of_week,
+    leave_start_time,
+    leave_end_time
+  `
+    )
+    .eq("stylist_id", stylist_id)
+    .eq("day_of_week", dayOfWeek);
+  if (breakError) throw new Error(breakError.message);
+  console.log("Break blocks:", breakBlocks);
+
+  const busyTimes = [];
+
+  if (breakBlocks && breakBlocks.length > 0) {
+    for (const block of breakBlocks) {
+      const start = parseTime(block.leave_start_time, date);
+      const end = parseTime(block.leave_end_time, date);
+      busyTimes.push([start, end]);
+    }
+  }
+  // 5. Compute free slots
+  const allFreeSlots = [];
+
+  // Dummy data setup
+  // const start_ = new Date("2025-07-30T03:00:00");
+  // const end_ = new Date("2025-07-30T10:00:00");
+
+  // const bookings_ = [
+  //   ["2025-07-30T05:31:00",
+  //     "2025-07-30T07:01:00",
+  //   ]
+  // ];
+
+  for (const block of updatedScheduleBlocks) {
     const start = parseTime(block.stylist_work_schedule.start_time_daily, date);
     const end = parseTime(block.stylist_work_schedule.end_time_daily, date);
     // const freeBlocks = subtractTimeRanges([start, end], busyTimes);

@@ -7,7 +7,8 @@ import {
   fetchSalonsByType,
   fetchStylistsBySalon,
   fetchStylistAvailability,
-  fetchSalonsByServiceName, getAllServicesBySalonId, getAvailableTimeSlotss
+  fetchSalonsByServiceName, getAllServicesBySalonId, getAvailableTimeSlotss,
+  getAvailableTimeSlotsSithum
 } from '../services/salonService.js';
 
 export const getAllSalons = async (req, res) => {
@@ -150,6 +151,38 @@ export const fetchAvailableTimeSlots = async (req, res) => {
     }
 
     const slots = await getAvailableTimeSlotss({
+      service_ids,
+      stylist_id,
+      salon_id,
+      date
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: slots
+    });
+  } catch (error) {
+    console.error('Error fetching available time slots:', error.message);
+    return res.status(500).json({
+      error: 'Failed to fetch available time slots',
+      details: error.message
+    });
+  }
+};
+
+
+export const fetchAvailableTimeSlotsSithum = async (req, res) => {
+  try {
+    const { service_ids, stylist_id, salon_id, date } = req.body;
+
+    // Validate inputs
+    if (!Array.isArray(service_ids) || service_ids.length === 0 || !stylist_id || !salon_id || !date) {
+      return res.status(400).json({
+        error: 'Missing or invalid input: service_ids (array), stylist_id, salon_id, or date are required.'
+      });
+    }
+
+    const slots = await getAvailableTimeSlotsSithum({
       service_ids,
       stylist_id,
       salon_id,
