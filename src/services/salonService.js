@@ -337,7 +337,7 @@ date,stylist_id
   const normal_Schedules_for_day = [];
 
   for (const block of updatedScheduleBlocks) {
-    if (block.is_every_week || block.day_of_week === dayOfWeek) {
+    if (block.is_every_week && block.day_of_week === dayOfWeek) {
       normal_Schedules_for_day.push(block);
     } else if (block.date && new Date(block.date).toISOString().split("T")[0] === date) {
       extra_schedules_for_day.push(block);
@@ -403,6 +403,7 @@ date,stylist_id
     const freeBlocks = subtractTimeRanges([start, end], busyTimes);
 
     const possibleSlots = splitIntoSlots(freeBlocks, totalDuration);
+    console.log("Possible slots:", possibleSlots.length);
 
     for (const slot of possibleSlots) {
       const available = await isWorkstationAvailable(
@@ -414,6 +415,7 @@ date,stylist_id
         allFreeSlots.push(slot);
       }
     }
+    console.log("Available slots for block:", block.schedule_id, allFreeSlots.length);
   }
 
   return allFreeSlots;

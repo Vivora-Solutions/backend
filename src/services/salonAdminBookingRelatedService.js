@@ -287,7 +287,7 @@ export const handleDeleteBooking = async (user_id, booking_id) => {
 
   const { error: deleteError } = await supabase
     .from("booking")
-    .delete()
+    .update({ status: "cancelled", updated_at: new Date() })
     .eq("booking_id", booking_id);
 
   if (deleteError) throw new Error(deleteError.message);
