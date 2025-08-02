@@ -214,13 +214,37 @@ export const handleGetAllBookings = async (user_id) => {
         service_id,
         service_price_at_booking,
         service_duration_at_booking
-      )
+      ),
+      user_id,
+      notes
     `
     )
     .eq("salon_id", salon_id)
+    .neq("status", "cancelled")
+    .gte("booking_start_datetime", (() => { const d = new Date(); d.setDate(d.getDate() - 5); return d.toISOString(); })())
+    .lt("booking_start_datetime", new Date().toISOString())
     .order("booking_start_datetime", { ascending: true });
 
   if (error) throw new Error(error.message);
+
+  for (let i = 0; i < data.length; i++) {
+    const booking = data[i];
+    if (booking.user_id) {
+      // Fetch user details if needed
+      const { data: user, error: userError } = await supabase
+        .from("customer")
+        .select("first_name, last_name, contact_number")
+        .eq("user_id", booking.user_id)
+        .single();
+
+      if (userError) {
+        console.error("Failed to fetch user details:", userError.message);
+        data[i].customer = null;
+      } else {
+        data[i].customer = user;
+      }
+    }
+  }
   return data;
 };
 
@@ -263,7 +287,7 @@ export const handleDeleteBooking = async (user_id, booking_id) => {
 
   const { error: deleteError } = await supabase
     .from("booking")
-    .delete()
+    .update({ status: "cancelled", updated_at: new Date() })
     .eq("booking_id", booking_id);
 
   if (deleteError) throw new Error(deleteError.message);
