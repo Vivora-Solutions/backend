@@ -41,7 +41,8 @@ import {
   getAllStylistsForSalon,
   toggleStylistActiveStatus,
   addStylistSchedule,
-  updateStylistSchedule
+  updateStylistSchedule,
+  getStylistsForSchedule
 } from '../controllers/salonAdminscheduleRelatedController.js';
 
 import {
@@ -139,6 +140,7 @@ router.put('/services/:serviceId', requireAuth, updateService);
 
 // Get all stylists in the salon (Only accessible by salon admin)
 router.get('/schedule', requireAuth, getAllStylistsForSalon);
+router.get('/schedule/:stylistId', requireAuth, getStylistsForSchedule);
 // Toggle stylist active status (Only accessible by salon admin)
 router.put('/schedule/status/:stylistId', requireAuth, toggleStylistActiveStatus);
 // Add work schedule for a stylist (POST)
