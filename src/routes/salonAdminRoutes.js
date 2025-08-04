@@ -54,7 +54,7 @@ import {
   createBooking,
   updateBooking,
   deleteBooking,
-  getAllBookings,
+  getAllBookings, getBookingsOfStylist,
 } from '../controllers/salonAdminBookingRelatedController.js';
 
 import { requireAuth } from '../middlewares/authMiddleware.js';
