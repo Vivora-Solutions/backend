@@ -1,4 +1,5 @@
 import {
+  handleGetAllStylists,
   handleAddStylist,
   handleDeleteStylist,
   handleUpdateStylistName,
@@ -9,7 +10,7 @@ import {
   handleDeleteStylistBio,
   handleAddServicesToStylist,
   handleDeleteServicesFromStylist,
-  handleGetServicesOfStylist, handleGetAllStylists
+  handleGetServicesOfStylist
 
 } from '../services/salonAdminStylistRelatedServices.js';
 
@@ -25,10 +26,11 @@ export const getAllStylists = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 export const addStylist = async (req, res) => {
   try {
     const user_id = req.userId;
-    if (!user_id) return res.status(400).json({ error: 'User ID missing' });
+    if (!user_id) return res.status(400).json({ error: "User ID missing" });
 
     const result = await handleAddStylist(user_id, req.body);
     res.status(200).json(result);
@@ -42,7 +44,8 @@ export const deleteStylist = async (req, res) => {
     const user_id = req.userId;
     const { stylist_id } = req.params;
 
-    if (!user_id || !stylist_id) return res.status(400).json({ error: 'Missing required data' });
+    if (!user_id || !stylist_id)
+      return res.status(400).json({ error: "Missing required data" });
 
     const result = await handleDeleteStylist(user_id, stylist_id);
     res.status(200).json(result);
@@ -60,6 +63,23 @@ export const updateStylistName = async (req, res) => {
     if (!new_name) return res.status(400).json({ error: 'New name is required' });
 
     const result = await handleUpdateStylistName(user_id, stylist_id, new_name);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateStylist = async (req, res) => {
+  try {
+    console.log("Updating stylist details");
+    const user_id = req.userId;
+    const { stylist_id } = req.params;
+    const data = req.body;
+
+    if (!data)
+      return res.status(400).json({ error: "New data is required" });
+
+    const result = await handleUpdateStylist(user_id, stylist_id, data);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
