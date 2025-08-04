@@ -1,4 +1,5 @@
-import { 
+import {
+  handleGetReviews,
   handleCreateReview,
   handleGetUserReviews,
   handleGetReviewById,
@@ -6,6 +7,20 @@ import {
   handleDeleteReview,
   handleGetSalonReviews
 } from '../services/reviewServices.js'
+
+
+//getReviews
+export const getReviews = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+
+    const result = await handleGetReviews( parseInt(page), parseInt(limit));
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 export const createReview = async (req, res) => {
   try {

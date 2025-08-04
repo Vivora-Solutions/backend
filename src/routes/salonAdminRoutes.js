@@ -40,18 +40,26 @@ import {
   getAllStylistsForSalon,
   toggleStylistActiveStatus,
   addStylistSchedule,
-  updateStylistSchedule
-} from '../controllers/salonAdminscheduleRelatedController.js';
+  updateStylistSchedule,
+  getAllStylistsWithSchedule,
+  addStylistLeave,
+  editStylistLeave,
+  deleteStylistLeave,
+  getAllLeavesForStylist,
+} from "../controllers/salonAdminscheduleRelatedController.js";
+
 
 import {
+  getAllBookings,
   createBooking,
   updateBooking,
-  deleteBooking,
-  getAllBookings,
+  deleteBooking, getBookingsOfStylist,
 } from '../controllers/salonAdminBookingRelatedController.js';
 
 import { requireAuth } from '../middlewares/authMiddleware.js';
-import { getServiceById } from '../controllers/superAdminController.js';
+
+
+
 import {
   addOrEditWorkingStationServices,
   createWorkingStation,
@@ -87,7 +95,8 @@ router.put('/images/:imageId', requireAuth, updateBannerImage);
 
 // 3.Stylist management
 
-router.get('/stylists', requireAuth, getAllStylists);
+//Get all Stylist
+router.get("/stylists", requireAuth, getAllStylists);
 // Add stylist
 router.post('/stylist', requireAuth, addStylist);
 // Delete stylist
@@ -134,22 +143,48 @@ router.put('/services/:serviceId', requireAuth, updateService);
 // 4. Schedule management
 
 // Get all stylists in the salon (Only accessible by salon admin)
-router.get('/schedule', requireAuth, getAllStylistsForSalon);
-// Toggle stylist active status (Only accessible by salon admin)
-router.put('/schedule/status/:stylistId', requireAuth, toggleStylistActiveStatus);
-// Add work schedule for a stylist (POST)
-router.post('/schedule', requireAuth, addStylistSchedule);
-// Update work schedule for a stylist (PUT)
-router.put('/schedule/:scheduleId', requireAuth, updateStylistSchedule);
+// router.get('/schedule', requireAuth, getAllStylistsForSalon);
+// // Toggle stylist active status (Only accessible by salon admin)
+// router.put('/schedule/status/:stylistId', requireAuth, toggleStylistActiveStatus);
+// // Add work schedule for a stylist (POST)
+// router.post('/schedule', requireAuth, addStylistSchedule);
+// // Update work schedule for a stylist (PUT)
+// router.put('/schedule/:scheduleId', requireAuth, updateStylistSchedule);
+//
+
+
+//new
+
+// Get all stylists and their schedules for a salon
+router.get("/schedule/stylists", requireAuth, getAllStylistsWithSchedule);
+// Add a new schedule for a stylist
+router.post("/schedule/stylists/:stylistId", requireAuth, addStylistSchedule);
+// // Update an existing stylist schedule
+router.put("/schedule/stylists/:stylistId/:scheduleId", requireAuth, updateStylistSchedule);
+// // Toggle stylist active status
+router.put('/schedule/stylists/:stylistId/status', requireAuth, toggleStylistActiveStatus);
+// // Add a leave for a stylist
+router.post("/schedule/stylists/:stylistId/leave", requireAuth, addStylistLeave);
+//Edit leave for a stylist
+router.put("/schedule/stylists/:stylistId/leave/:leaveId", requireAuth, editStylistLeave);
+//Delete leave for a stylist
+router.delete("/schedule/stylists/:stylistId/leave/:leaveId", requireAuth, deleteStylistLeave);
+//Get all leaves for a stylist
+router.get("/schedule/stylists/:stylistId/leaves", requireAuth, getAllLeavesForStylist);
+
 
 
 // 5. Booking management
 router.get("/booking", requireAuth, getAllBookings);
-router.post('/booking', requireAuth, createBooking);
+router.post("/booking", requireAuth, createBooking);
 // Edit details of a booking only for that salon admin
-router.put('/booking/:bookingId', requireAuth, updateBooking);
+router.put("/booking/:bookingId", requireAuth, updateBooking);
 // Delete a booking only for that salon admin have access
-router.delete('/booking/:bookingId', requireAuth, deleteBooking);
+router.delete("/booking/:bookingId", requireAuth, deleteBooking);
+
+//new
+//Booking for a stylist
+router.get("/booking/stylist/:stylistId", requireAuth, getBookingsOfStylist);
 
 
 

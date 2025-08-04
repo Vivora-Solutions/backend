@@ -162,28 +162,35 @@ export const registerSalon = async (body) => {
 
 
 export const handleUserLogin = async ({ email, password }) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+    });
 
-  if (error) throw new Error(error.message);
+    if (error) throw new Error(error.message);
 
-  // fetch user's role from your "user" table
-  const { data: userRow, error: fetchError } = await supabase
-    .from('user')
-    .select('user_id, role')
-    .eq('email', email)
-    .single();
+    const { data: userRows, error: fetchError } = await supabase
+        .from('user')
+        .select('user_id, role')
+        .eq('email', email);
 
-  if (fetchError) throw new Error(fetchError.message);
+    if (fetchError) throw new Error(fetchError.message);
 
-  return {
-    message: 'Login successful',
-    session: data.session,        // contains access_token, refresh_token
-    //user: data.user,            // supabase user object
-    customRole: userRow.role,     // from your custom table(This includes customer, salon_admin, super_admin)
-  };
+    if (!userRows || userRows.length === 0) {
+        throw new Error('No user found with this email');
+    }
+
+    if (userRows.length > 1) {
+        throw new Error('Multiple users found with this email');
+    }
+
+    const userRow = userRows[0];
+
+    return {
+        message: 'Login successful',
+        session: data.session,
+        customRole: userRow.role,
+    };
 };
 
 
