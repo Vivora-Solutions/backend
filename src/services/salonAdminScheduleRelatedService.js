@@ -112,7 +112,6 @@
 //   return data.salon_id;
 // };
 
-
 import e from "express";
 import supabase from "../config/supabaseClient.js";
 
@@ -120,9 +119,9 @@ export const handleGetAllStylistsForSalon = async (user_id) => {
   const salon_id = await getSalonIdByAdmin(user_id);
 
   const { data: stylists, error } = await supabase
-      .from("stylist")
-      .select("*")
-      .eq("salon_id", salon_id);
+    .from("stylist")
+    .select("*")
+    .eq("salon_id", salon_id);
 
   if (error) throw new Error(error.message);
   return { message: "Stylists fetched successfully", data: stylists };
@@ -158,29 +157,28 @@ export const handleGetStylistsWithSchedule = async (user_id, stylist_id) => {
   };
 };
 
-
 export const handleGetAllStylistsWithSchedule = async (user_id) => {
   const salon_id = await getSalonIdByAdmin(user_id);
 
   const { data: stylists, error } = await supabase
-      .from("stylist")
-      .select("*")
-      .eq("salon_id", salon_id);
+    .from("stylist")
+    .select("*")
+    .eq("salon_id", salon_id);
 
   if (error) throw new Error(error.message);
 
   // Fetch schedules for each stylist
   const stylistsWithSchedule = await Promise.all(
-      stylists.map(async (stylist) => {
-        const { data: schedule, error: scheduleError } = await supabase
-            .from("stylist_work_schedule_new")
-            .select("*")
-            .eq("stylist_id", stylist.stylist_id);
+    stylists.map(async (stylist) => {
+      const { data: schedule, error: scheduleError } = await supabase
+        .from("stylist_work_schedule_new")
+        .select("*")
+        .eq("stylist_id", stylist.stylist_id);
 
-        if (scheduleError) throw new Error(scheduleError.message);
+      if (scheduleError) throw new Error(scheduleError.message);
 
-        return { ...stylist, schedule };
-      })
+      return { ...stylist, schedule };
+    })
   );
   console.log("Stylists with schedule:", stylistsWithSchedule);
 
@@ -191,17 +189,17 @@ export const handleGetAllStylistsWithSchedule = async (user_id) => {
 };
 
 export const handleToggleStylistActiveStatus = async (
-    user_id,
-    stylist_id,
-    is_active
+  user_id,
+  stylist_id,
+  is_active
 ) => {
   const adminSalonId = await getSalonIdByAdmin(user_id);
 
   const { data: stylist, error } = await supabase
-      .from("stylist")
-      .select("salon_id")
-      .eq("stylist_id", stylist_id)
-      .single();
+    .from("stylist")
+    .select("salon_id")
+    .eq("stylist_id", stylist_id)
+    .single();
 
   if (error || !stylist) throw new Error("Stylist not found");
 
@@ -210,10 +208,10 @@ export const handleToggleStylistActiveStatus = async (
   }
 
   const { data, error: updateError } = await supabase
-      .from("stylist")
-      .update({ is_active, updated_at: new Date() })
-      .eq("stylist_id", stylist_id)
-      .select();
+    .from("stylist")
+    .update({ is_active, updated_at: new Date() })
+    .eq("stylist_id", stylist_id)
+    .select();
 
   if (updateError) throw new Error(updateError.message);
   return { message: "Stylist active status updated", data };
@@ -225,23 +223,23 @@ export const handleAddStylistSchedule = async (user_id, body) => {
   const adminSalonId = await getSalonIdByAdmin(user_id);
 
   const { data: stylist, error } = await supabase
-      .from("stylist")
-      .select("salon_id")
-      .eq("stylist_id", stylist_id)
-      .single();
+    .from("stylist")
+    .select("salon_id")
+    .eq("stylist_id", stylist_id)
+    .single();
 
   if (error || !stylist) throw new Error("Stylist not found");
 
   if (stylist.salon_id !== adminSalonId) {
     throw new Error(
-        "You do not have permission to add schedule for this stylist"
+      "You do not have permission to add schedule for this stylist"
     );
   }
 
   const { data, error: insertError } = await supabase
-      .from("stylist_work_schedule_new")
-      .insert([{ stylist_id, start_time_daily, end_time_daily, day_of_week }])
-      .select();
+    .from("stylist_work_schedule_new")
+    .insert([{ stylist_id, start_time_daily, end_time_daily, day_of_week }])
+    .select();
   if (insertError) throw new Error(insertError.message);
 
   return { message: "Schedule added successfully", data };
@@ -295,7 +293,6 @@ export const handleAddStylistSchedule = async (user_id, body) => {
 //   return data.salon_id;
 // };
 
-
 export const handleUpdateStylistSchedule = async (user_id, body) => {
   const {
     stylist_id,
@@ -309,10 +306,10 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
 
   // Check if schedule exists and belongs to this stylist
   const { data: schedule, error: scheduleError } = await supabase
-      .from("stylist_work_schedule_new")
-      .select("stylist_id")
-      .eq("schedule_id", schedule_id)
-      .single();
+    .from("stylist_work_schedule_new")
+    .select("stylist_id")
+    .eq("schedule_id", schedule_id)
+    .single();
 
   if (scheduleError || !schedule) {
     throw new Error("Schedule not found");
@@ -324,10 +321,10 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
 
   // Check if stylist belongs to admin's salon
   const { data: stylist, error: stylistError } = await supabase
-      .from("stylist")
-      .select("salon_id")
-      .eq("stylist_id", stylist_id)
-      .single();
+    .from("stylist")
+    .select("salon_id")
+    .eq("stylist_id", stylist_id)
+    .single();
 
   if (stylistError || !stylist) {
     throw new Error("Stylist not found");
@@ -339,15 +336,15 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
 
   // Perform the update
   const { data, error: updateError } = await supabase
-      .from("stylist_work_schedule_new")
-      .update({
-        day_of_week,
-        start_time_daily,
-        end_time_daily,
-        updated_at: new Date(),
-      })
-      .eq("schedule_id", schedule_id)
-      .select();
+    .from("stylist_work_schedule_new")
+    .update({
+      day_of_week,
+      start_time_daily,
+      end_time_daily,
+      updated_at: new Date(),
+    })
+    .eq("schedule_id", schedule_id)
+    .select();
 
   if (updateError) {
     throw new Error(updateError.message);
@@ -364,10 +361,10 @@ export const handleAddStylistLeave = async (user_id, body) => {
   const adminSalonId = await getSalonIdByAdmin(user_id);
   // Check if stylist belongs to admin's salon
   const { data: stylist, error: stylistError } = await supabase
-      .from("stylist")
-      .select("salon_id")
-      .eq("stylist_id", stylist_id)
-      .single();
+    .from("stylist")
+    .select("salon_id")
+    .eq("stylist_id", stylist_id)
+    .single();
   if (stylistError || !stylist) {
     throw new Error("Stylist not found");
   }
@@ -376,9 +373,9 @@ export const handleAddStylistLeave = async (user_id, body) => {
   }
   // Insert leave record
   const { data: leave, error: leaveError } = await supabase
-      .from("stylist_leave_new")
-      .insert([{ stylist_id, date, leave_start_time, leave_end_time }])
-      .select();
+    .from("stylist_leave_new")
+    .insert([{ stylist_id, date, leave_start_time, leave_end_time }])
+    .select();
   if (leaveError) {
     throw new Error(leaveError.message);
   }
@@ -393,27 +390,29 @@ export const handleEditStylistLeave = async (user_id, body) => {
   const adminSalonId = await getSalonIdByAdmin(user_id);
   // Check if stylist belongs to admin's salon
   const { data: stylist, error: stylistError } = await supabase
-      .from("stylist")
-      .select("salon_id")
-      .eq("stylist_id", stylist_id)
-      .single();
+    .from("stylist")
+    .select("salon_id")
+    .eq("stylist_id", stylist_id)
+    .single();
   if (stylistError || !stylist) {
     throw new Error("Stylist not found");
   }
   if (stylist.salon_id !== adminSalonId) {
-    throw new Error("You do not have permission to edit leave for this stylist");
+    throw new Error(
+      "You do not have permission to edit leave for this stylist"
+    );
   }
   // Update leave record
   const { data: updatedLeave, error: updateError } = await supabase
-      .from("stylist_leave_new")
-      .update({
-        date,
-        leave_start_time,
-        leave_end_time,
-        created_at: new Date(),
-      })
-      .eq("leave_id", leave_id)
-      .select();
+    .from("stylist_leave_new")
+    .update({
+      date,
+      leave_start_time,
+      leave_end_time,
+      created_at: new Date(),
+    })
+    .eq("leave_id", leave_id)
+    .select();
   if (updateError) {
     throw new Error(updateError.message);
   }
@@ -429,25 +428,27 @@ export const handleDeleteStylistLeave = async (user_id, body) => {
 
   // Check if stylist belongs to admin's salon
   const { data: stylist, error: stylistError } = await supabase
-      .from("stylist")
-      .select("salon_id")
-      .eq("stylist_id", stylist_id)
-      .single();
+    .from("stylist")
+    .select("salon_id")
+    .eq("stylist_id", stylist_id)
+    .single();
 
   if (stylistError || !stylist) {
     throw new Error("Stylist not found");
   }
 
   if (stylist.salon_id !== adminSalonId) {
-    throw new Error("You do not have permission to delete leave for this stylist");
+    throw new Error(
+      "You do not have permission to delete leave for this stylist"
+    );
   }
 
   // Delete leave record
   const { data, error: deleteError } = await supabase
-      .from("stylist_leave_new")
-      .delete()
-      .eq("leave_id", leave_id)
-      .select();
+    .from("stylist_leave_new")
+    .delete()
+    .eq("leave_id", leave_id)
+    .select();
 
   if (deleteError) {
     throw new Error(deleteError.message);
@@ -464,24 +465,26 @@ export const handleGetAllLeavesForStylist = async (user_id, stylist_id) => {
 
   // Check if stylist belongs to admin's salon
   const { data: stylist, error: stylistError } = await supabase
-      .from("stylist")
-      .select("salon_id")
-      .eq("stylist_id", stylist_id)
-      .single();
+    .from("stylist")
+    .select("salon_id")
+    .eq("stylist_id", stylist_id)
+    .single();
 
   if (stylistError || !stylist) {
     throw new Error("Stylist not found");
   }
 
   if (stylist.salon_id !== adminSalonId) {
-    throw new Error("You do not have permission to view leaves for this stylist");
+    throw new Error(
+      "You do not have permission to view leaves for this stylist"
+    );
   }
 
   // Fetch all leaves for the stylist
   const { data: leaves, error: leavesError } = await supabase
-      .from("stylist_leave_new")
-      .select("*")
-      .eq("stylist_id", stylist_id);
+    .from("stylist_leave_new")
+    .select("*")
+    .eq("stylist_id", stylist_id);
 
   if (leavesError) {
     throw new Error(leavesError.message);
@@ -493,13 +496,44 @@ export const handleGetAllLeavesForStylist = async (user_id, stylist_id) => {
   };
 };
 
+export const handleGetAllLeavesForSalon = async (user_id) => {
+  const adminSalonId = await getSalonIdByAdmin(user_id);
+  
+  // Get all stylists for this salon
+  const { data: stylists, error: stylistsError } = await supabase
+    .from("stylist")
+    .select("stylist_id")
+    .eq("salon_id", adminSalonId);
+    
+  if (stylistsError) {
+    throw new Error(stylistsError.message);
+  }
+  
+  // Extract stylist IDs
+  const stylistIds = stylists.map(stylist => stylist.stylist_id);
+  
+  // Fetch all leaves for stylists in this salon
+  const { data: leaves, error: leavesError } = await supabase
+    .from("stylist_leave_new")
+    .select("*")
+    .in("stylist_id", stylistIds);
+    
+  if (leavesError) {
+    throw new Error(leavesError.message);
+  }
+  
+  return {
+    message: "All leaves for salon fetched successfully",
+    data: leaves,
+  };
+};
 
 const getSalonIdByAdmin = async (user_id) => {
   const { data, error } = await supabase
-      .from("salon")
-      .select("salon_id")
-      .eq("admin_user_id", user_id)
-      .single();
+    .from("salon")
+    .select("salon_id")
+    .eq("admin_user_id", user_id)
+    .single();
 
   if (error || !data) throw new Error("Salon not found for this admin");
   return data.salon_id;
