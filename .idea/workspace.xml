@@ -7,10 +7,7 @@
     <list default="true" id="1ff46fa7-34e4-4e56-8f14-b9fdccc44622" name="Changes" comment="add import">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controllers/salonAdminStylistRelatedController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/salonAdminStylistRelatedController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controllers/salonAdminscheduleRelatedController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/salonAdminscheduleRelatedController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/routes/salonAdminRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/salonAdminRoutes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/salonAdminBookingRelatedService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminBookingRelatedService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/salonAdminScheduleRelatedService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminScheduleRelatedService.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/services/salonAdminStylistRelatedServices.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminStylistRelatedServices.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -36,7 +33,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;sahan&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/fix&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -66,7 +63,7 @@
       <workItem from="1754260885851" duration="706000" />
       <workItem from="1754281596649" duration="2048000" />
       <workItem from="1754299800159" duration="10423000" />
-      <workItem from="1754365866173" duration="3995000" />
+      <workItem from="1754365866173" duration="12286000" />
     </task>
     <task id="LOCAL-00001">
       <option name="closed" value="true" />
