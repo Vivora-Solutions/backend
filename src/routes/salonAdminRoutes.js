@@ -13,6 +13,7 @@ import {
 
 
 import {
+  getStylist,
   getAllStylists,
   addStylist,
   updateStylistName,
@@ -95,6 +96,8 @@ router.put('/images/:imageId', requireAuth, updateBannerImage);
 // 3.Stylist management
 
 //Get all Stylist
+router.get("/stylist/:stylist_id", requireAuth, getStylist);
+// Get one Stylist
 router.get("/stylists", requireAuth, getAllStylists);
 // Add stylist
 router.post('/stylist', requireAuth, addStylist);

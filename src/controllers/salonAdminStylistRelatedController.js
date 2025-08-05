@@ -1,4 +1,5 @@
 import {
+  handleGetStylist,
   handleGetAllStylists,
   handleAddStylist,
   handleUpdateStylistName,
@@ -9,14 +10,30 @@ import {
   handleDeleteStylistBio,
   handleAddServicesToStylist,
   handleDeleteServicesFromStylist,
-  handleGetServicesOfStylist, handleDisableStylist, handleActivateStylist
+  handleGetServicesOfStylist, handleDisableStylist, handleActivateStylist, handleUpdateStylist
 
 } from '../services/salonAdminStylistRelatedServices.js';
+
+
+//getStylist
+export const getStylist = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    const stylist_id = req.params.stylist_id;
+    if (!user_id) return res.status(400).json({ error: 'User ID missing' });
+
+    const stylists = await handleGetStylist(user_id, stylist_id);
+    res.status(200).json(stylists);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 
 export const getAllStylists = async (req, res) => {
   try {
     const user_id = req.userId;
+    console.log("In the controller");
     if (!user_id) return res.status(400).json({ error: 'User ID missing' });
 
     const stylists = await handleGetAllStylists(user_id);
