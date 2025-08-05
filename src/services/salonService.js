@@ -3,8 +3,8 @@ import supabase from "../config/supabaseClient.js";
 
 export const fetchAllSalon = async () => {
   const { data, error } = await supabase
-      .from("salon")
-      .select(`
+    .from("salon")
+    .select(`
       salon_id,
       salon_name,
       location,
@@ -18,7 +18,7 @@ export const fetchAllSalon = async () => {
         image_link
       )
     `)
-      .eq("is_approved", true);
+    .eq("is_approved", true);
 
   if (error) throw new Error(error.message);
 
@@ -177,9 +177,9 @@ export const fetchServiceById = async (serviceId) => {
   }
 
   const { data, error } = await supabase
-      .from("service")
-      .select(
-          `
+    .from("service")
+    .select(
+      `
       service_name,
       price,
       duration_minutes,
@@ -190,9 +190,9 @@ export const fetchServiceById = async (serviceId) => {
         location
       )
     `
-      )
-      .eq("service_id", serviceId)
-      .single(); // since service_id is unique
+    )
+    .eq("service_id", serviceId)
+    .single(); // since service_id is unique
 
   if (error) {
     console.error("Supabase error:", error.message);
@@ -210,13 +210,13 @@ export const fetchServiceById = async (serviceId) => {
 
 
 
-export const getAllServicesBySalonId  = async (salonId) => {
+export const getAllServicesBySalonId = async (salonId) => {
   const { data, error } = await supabase
-      .from("service")
-      .select("*")
-      .eq("salon_id", salonId)
-      .eq("is_available", true)
-      .order("created_at", { ascending: false });
+    .from("service")
+    .select("*")
+    .eq("salon_id", salonId)
+    .eq("is_available", true)
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(error.message);
@@ -243,12 +243,12 @@ const subtractTimeRanges = (baseRange, busyRanges) => {
   let [start, end] = baseRange;
 
   busyRanges
-      .filter(([bStart, bEnd]) => bStart < end && bEnd > start)
-      .sort((a, b) => a[0] - b[0])
-      .forEach(([bStart, bEnd]) => {
-        if (bStart > start) free.push([start, new Date(bStart)]);
-        start = bEnd > start ? new Date(bEnd) : start;
-      });
+    .filter(([bStart, bEnd]) => bStart < end && bEnd > start)
+    .sort((a, b) => a[0] - b[0])
+    .forEach(([bStart, bEnd]) => {
+      if (bStart > start) free.push([start, new Date(bStart)]);
+      start = bEnd > start ? new Date(bEnd) : start;
+    });
 
   if (start < end) free.push([start, end]);
   return free;
@@ -274,20 +274,20 @@ const splitIntoSlots = (freeRanges, durationMinutes) => {
 
 const isWorkstationAvailable = async (salonId, start, end) => {
   const { data: workstations, error: wsError } = await supabase
-      .from("workstation")
-      .select("workstation_id")
-      .eq("salon_id", salonId);
+    .from("workstation")
+    .select("workstation_id")
+    .eq("salon_id", salonId);
 
   if (wsError) throw new Error(wsError.message);
 
   for (const ws of workstations) {
     const { data: bookings, error: bookingErr } = await supabase
-        .from("booking")
-        .select("booking_id")
-        .eq("workstation_id", ws.workstation_id)
-        .or("status.eq.confirmed,status.eq.pending")
-        .lt("booking_start_datetime", end.toISOString())
-        .gt("booking_end_datetime", start.toISOString());
+      .from("booking")
+      .select("booking_id")
+      .eq("workstation_id", ws.workstation_id)
+      .or("status.eq.confirmed,status.eq.pending")
+      .lt("booking_start_datetime", end.toISOString())
+      .gt("booking_end_datetime", start.toISOString());
 
     if (bookingErr) throw new Error(bookingErr.message);
     if (bookings.length === 0) return true; // at least one is free
@@ -297,23 +297,23 @@ const isWorkstationAvailable = async (salonId, start, end) => {
 };
 
 export const getAvailableTimeSlotss = async ({
-                                               service_ids,
-                                               stylist_id,
-                                               salon_id,
-                                               date,
-                                             }) => {
+  service_ids,
+  stylist_id,
+  salon_id,
+  date,
+}) => {
   if (!Array.isArray(service_ids) || !stylist_id || !salon_id || !date) {
     throw new Error(
-        "Missing required input: service_ids, stylist_id, salon_id, or date"
+      "Missing required input: service_ids, stylist_id, salon_id, or date"
     );
   }
   const dayOfWeek = new Date(date).getUTCDay(); // 0 = Sunday
   console.log("service_ids:", service_ids, " stylist_id:", stylist_id, "salon_id:", salon_id, "date:", date, "dayOfWeek:", dayOfWeek);
   // 1. Get total duration from services
   const { data: services, error: serviceError } = await supabase
-      .from("service")
-      .select("duration_minutes")
-      .in("service_id", service_ids);
+    .from("service")
+    .select("duration_minutes")
+    .in("service_id", service_ids);
 
   console.log("Services:", services);
   if (serviceError) throw new Error(serviceError.message);
@@ -321,18 +321,18 @@ export const getAvailableTimeSlotss = async ({
     throw new Error("Invalid service_ids");
 
   const totalDuration = services.reduce(
-      (sum, s) => sum + s.duration_minutes,
-      0
+    (sum, s) => sum + s.duration_minutes,
+    0
   );
   console.log("Total duration:", totalDuration);
 
   //1.5 Check that the stylist have taken a leave
   ;
   const { data: leaves, error: leaveError } = await supabase
-      .from("stylist_leave").select(`
+    .from("stylist_leave").select(`
 date,stylist_id
   `)
-      .eq("stylist_id", stylist_id).eq("date", date);
+    .eq("stylist_id", stylist_id).eq("date", date);
 
   if (leaveError) throw new Error(leaveError.message);
   if (leaves && leaves.length > 0) {
@@ -343,9 +343,9 @@ date,stylist_id
 
   // 2. Get working blocks for stylist
   const { data: scheduleBlocks, error: scheduleError } = await supabase
-      .from("stylist_schedule_day")
-      .select(
-          `
+    .from("stylist_schedule_day")
+    .select(
+      `
     schedule_id,
     stylist_work_schedule (
       start_time_daily,
@@ -356,9 +356,9 @@ date,stylist_id
     is_every_week,
     date
   `
-      )
-      .eq("day_of_week", dayOfWeek)
-      .eq("stylist_work_schedule.stylist_id", stylist_id);
+    )
+    .eq("day_of_week", dayOfWeek)
+    .eq("stylist_work_schedule.stylist_id", stylist_id);
 
   if (scheduleError) throw new Error(scheduleError.message);
   if (!scheduleBlocks || scheduleBlocks.length === 0) {
@@ -368,15 +368,15 @@ date,stylist_id
   console.log("Schedule blocks:", scheduleBlocks);
 
   const updatedScheduleBlocks = scheduleBlocks
-      .filter((block) => block.stylist_work_schedule)
-      .map((block) => ({
-        ...block,
-        stylist_work_schedule: {
-          ...block.stylist_work_schedule,
-          start_time_daily: block.stylist_work_schedule.start_time_daily,
-          end_time_daily: block.stylist_work_schedule.end_time_daily,
-        },
-      }));
+    .filter((block) => block.stylist_work_schedule)
+    .map((block) => ({
+      ...block,
+      stylist_work_schedule: {
+        ...block.stylist_work_schedule,
+        start_time_daily: block.stylist_work_schedule.start_time_daily,
+        end_time_daily: block.stylist_work_schedule.end_time_daily,
+      },
+    }));
 
   console.log("Updated schedule blocks:", updatedScheduleBlocks);
 
@@ -405,19 +405,19 @@ date,stylist_id
 
   if (priorityBlocks.length === 0) {
     console.warn(
-        `No working schedule found for stylist ${stylist_id} on ${date} (${dayOfWeek})`
+      `No working schedule found for stylist ${stylist_id} on ${date} (${dayOfWeek})`
     );
     return [];
   }
   // 3. Get existing bookings
   const { data: bookings, error: bookingError } = await supabase
-      .from("booking")
-      .select("booking_start_datetime, booking_end_datetime")
-      .eq("stylist_id", stylist_id)
-      .eq("salon_id", salon_id)
-      .or("status.eq.confirmed,status.eq.pending")
-      .gte("booking_start_datetime", `${date}T00:00:00Z`)
-      .lt("booking_start_datetime", `${date}T23:59:59Z`);
+    .from("booking")
+    .select("booking_start_datetime, booking_end_datetime")
+    .eq("stylist_id", stylist_id)
+    .eq("salon_id", salon_id)
+    .or("status.eq.confirmed,status.eq.pending")
+    .gte("booking_start_datetime", `${date}T00:00:00Z`)
+    .lt("booking_start_datetime", `${date}T23:59:59Z`);
 
   console.log("Existing bookings:", bookings);
   if (bookingError) throw new Error(bookingError.message);
@@ -454,9 +454,9 @@ date,stylist_id
 
     for (const slot of possibleSlots) {
       const available = await isWorkstationAvailable(
-          salon_id,
-          slot.start,
-          slot.end
+        salon_id,
+        slot.start,
+        slot.end
       );
       if (available) {
         allFreeSlots.push(slot);
@@ -470,14 +470,14 @@ date,stylist_id
 
 
 export const getAvailableTimeSlotsSithum = async ({
-                                                    service_ids,
-                                                    stylist_id,
-                                                    salon_id,
-                                                    date,
-                                                  }) => {
+  service_ids,
+  stylist_id,
+  salon_id,
+  date,
+}) => {
   if (!Array.isArray(service_ids) || !stylist_id || !salon_id || !date) {
     throw new Error(
-        "Missing required input: service_ids, stylist_id, salon_id, or date"
+      "Missing required input: service_ids, stylist_id, salon_id, or date"
     );
   }
 
@@ -486,26 +486,26 @@ export const getAvailableTimeSlotsSithum = async ({
 
   // 1. Get total duration
   const { data: services, error: serviceError } = await supabase
-      .from("service")
-      .select("duration_minutes")
-      .in("service_id", service_ids);
+    .from("service")
+    .select("duration_minutes")
+    .in("service_id", service_ids);
 
   if (serviceError) throw new Error(serviceError.message);
   if (!services || services.length === 0)
     throw new Error("Invalid service_ids");
 
   const totalDuration = services.reduce(
-      (sum, s) => sum + s.duration_minutes,
-      0
+    (sum, s) => sum + s.duration_minutes,
+    0
   );
   console.log("Total duration:", totalDuration);
 
   // 2. Get working schedule directly from new table
   const { data: scheduleBlocks, error: scheduleError } = await supabase
-      .from("stylist_work_schedule_new")
-      .select("schedule_id, start_time_daily, end_time_daily")
-      .eq("day_of_week", dayOfWeek)
-      .eq("stylist_id", stylist_id);
+    .from("stylist_work_schedule_new")
+    .select("schedule_id, start_time_daily, end_time_daily")
+    .eq("day_of_week", dayOfWeek)
+    .eq("stylist_id", stylist_id);
 
   if (scheduleError) throw new Error(scheduleError.message);
   if (!scheduleBlocks || scheduleBlocks.length === 0) {
@@ -514,12 +514,27 @@ export const getAvailableTimeSlotsSithum = async ({
 
   console.log("Schedule blocks:", scheduleBlocks);
 
+
+  // 2.5. check leaves
+  const { data: leaves, error: leaveError } = await supabase
+    .from("stylist_leave_new")
+    .select("leave_start_time, leave_end_time")
+    .eq("stylist_id", stylist_id)
+    .eq("date", date) // match specific date
+    .eq("leave_start_time", `${date}T00:00:00+00:00`) // match all day leaves start
+    .eq("leave_end_time", `${date}T23:59:59+00:00`); // match all day leaves end
+
+  if (leaveError) throw new Error(leaveError.message);
+  console.log("Leave blocks:", leaves); // Fixed variable name
+  if (leaves && leaves.length > 0) {
+    throw new Error("Stylist is on leave on the selected date");
+  }
   // 3. Get leave blocks (only for the specific date)
   const { data: breakBlocks, error: breakError } = await supabase
-      .from("stylist_leave_new")
-      .select("leave_start_time, leave_end_time")
-      .eq("stylist_id", stylist_id)
-      .eq("date", date); // match specific date
+    .from("stylist_leave_new")
+    .select("leave_start_time, leave_end_time")
+    .eq("stylist_id", stylist_id)
+    .eq("date", date); // match specific date
 
   if (breakError) throw new Error(breakError.message);
   console.log("Break blocks:", breakBlocks);
@@ -531,11 +546,11 @@ export const getAvailableTimeSlotsSithum = async ({
   ]);
 
   console.log(
-      "Busy times:",
-      busyTimes.map(([s, e]) => ({
-        start: s.toISOString(),
-        end: e.toISOString(),
-      }))
+    "Busy times:",
+    busyTimes.map(([s, e]) => ({
+      start: s.toISOString(),
+      end: e.toISOString(),
+    }))
   );
 
 
@@ -552,9 +567,9 @@ export const getAvailableTimeSlotsSithum = async ({
 
     for (const slot of possibleSlots) {
       const available = await isWorkstationAvailable(
-          salon_id,
-          slot.start,
-          slot.end
+        salon_id,
+        slot.start,
+        slot.end
       );
       if (available) {
         allFreeSlots.push(slot);
@@ -562,9 +577,9 @@ export const getAvailableTimeSlotsSithum = async ({
     }
 
     console.log(
-        "Available slots for schedule_id:",
-        block.schedule_id,
-        allFreeSlots.length
+      "Available slots for schedule_id:",
+      block.schedule_id,
+      allFreeSlots.length
     );
   }
 
