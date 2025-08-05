@@ -98,6 +98,7 @@ import {
   handleDeleteStylistLeave,
   handleGetAllLeavesForStylist,
   handleGetStylistsWithSchedule,
+  handleGetAllLeavesForSalon,
 } from "../services/salonAdminScheduleRelatedService.js";
 import { addStylist } from './salonAdminStylistRelatedController.js';
 
@@ -367,6 +368,21 @@ export const getAllLeavesForStylist = async (req, res) => {
     }
 
     const result = await handleGetAllLeavesForStylist(user_id, stylist_id);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getAllLeavesForSalon = async (req, res) => {
+  try {
+    const user_id = req.userId;
+
+    if (!user_id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const result = await handleGetAllLeavesForSalon(user_id);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

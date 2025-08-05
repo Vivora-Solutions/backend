@@ -48,7 +48,8 @@ import {
   deleteStylistLeave,
   getAllLeavesForStylist,
   getStylistsForSchedule,
-  getStylistsWithSchedule
+  getStylistsWithSchedule,
+  getAllLeavesForSalon,
 } from "../controllers/salonAdminscheduleRelatedController.js";
 
 import {
@@ -181,7 +182,8 @@ router.put("/schedule/stylists/:stylistId/leave/:leaveId", requireAuth, editStyl
 router.delete("/schedule/stylists/:stylistId/leave/:leaveId", requireAuth, deleteStylistLeave);
 //Get all leaves for a stylist
 router.get("/schedule/stylists/:stylistId/leaves", requireAuth, getAllLeavesForStylist);
-
+//Get all leaves for a salon
+router.get("/schedule/leaves", requireAuth, getAllLeavesForSalon);
 
 
 // 5. Booking management
