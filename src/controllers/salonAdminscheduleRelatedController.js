@@ -97,6 +97,7 @@ import {
   handleEditStylistLeave,
   handleDeleteStylistLeave,
   handleGetAllLeavesForStylist,
+  handleGetStylistsWithSchedule,
 } from "../services/salonAdminScheduleRelatedService.js";
 import { addStylist } from './salonAdminStylistRelatedController.js';
 
@@ -146,9 +147,27 @@ export const toggleStylistActiveStatus = async (req, res) => {
   }
 };
 
+export const getStylistsWithSchedule = async (req, res) => {
+  try{
+    const user_id = req.userId;
+    const { stylistId } = req.params;
+
+    if (!user_id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const result = await handleGetStylistsWithSchedule(user_id, stylistId);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 export const getAllStylistsWithSchedule = async (req, res) => {
   try{
     const user_id = req.userId;
+    
 
     if (!user_id) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -162,9 +181,11 @@ export const getAllStylistsWithSchedule = async (req, res) => {
 };
 export const addStylistSchedule = async (req, res) => {
   try {
+    console.log("Adding stylist schedule...");
     const user_id = req.userId;
     const stylist_id = req.params.stylistId;
     const { day_of_week, start_time_daily, end_time_daily } = req.body;
+    console.log(req.body);
 
     if (
         !user_id ||

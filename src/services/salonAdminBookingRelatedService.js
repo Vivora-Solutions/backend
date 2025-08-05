@@ -398,13 +398,17 @@ export const handleCreateBooking = async (
 export const handleGetAllBookings = async (user_id) => {
   console.log("Fetching all bookings for salon admin...");
   const salon_id = await getSalonIdByAdmin(user_id);
+  console.log("Salon ID: ", salon_id);
+
   const { data, error } = await supabase
-      .from("booking")
-      .select(
-          `
+    .from("booking")
+    .select(`
       booking_id,
       booking_start_datetime,
       booking_end_datetime,
+      status,
+      user_id,
+      notes,
       stylist:stylist_id (
         stylist_id,
         stylist_name
@@ -413,41 +417,45 @@ export const handleGetAllBookings = async (user_id) => {
         workstation_id,
         workstation_name
       ),
-      salon:salon_id (
-        salon_id,
-        salon_name
-      ),
       non_online_customer:non_online_customer_id (
         non_online_customer_id,
         non_online_customer_name,
         non_online_customer_mobile_number
       ),
       booking_services (
-        service_id,
+        booking_service_id,
         service_price_at_booking,
-        service_duration_at_booking
-      ),
-      user_id,
-      notes
-    `
+        service_duration_at_booking,
+        service (
+          service_id,
+          service_name,
+          service_description,
+          price,
+          duration_minutes,
+          service_category
+        )
       )
-      .eq("salon_id", salon_id)
-      .neq("status", "cancelled")
-      .gte("booking_start_datetime", (() => { const d = new Date(); d.setDate(d.getDate() - 5); return d.toISOString(); })())
-      .lt("booking_start_datetime", new Date().toISOString())
-      .order("booking_start_datetime", { ascending: true });
+      
+      
+      
 
+    `)
+    .eq("salon_id", salon_id)
+    .neq("status", "cancelled")
+    .gte("booking_start_datetime", new Date().toISOString())
+    .order("booking_start_datetime", { ascending: true });
+  console.log("Bookings Data:", data);
   if (error) throw new Error(error.message);
 
+  // Fetch user details for bookings with user_id
   for (let i = 0; i < data.length; i++) {
     const booking = data[i];
     if (booking.user_id) {
-      // Fetch user details if needed
       const { data: user, error: userError } = await supabase
-          .from("customer")
-          .select("first_name, last_name, contact_number")
-          .eq("user_id", booking.user_id)
-          .single();
+        .from("customer")
+        .select("first_name, last_name, contact_number")
+        .eq("user_id", booking.user_id)
+        .single();
 
       if (userError) {
         console.error("Failed to fetch user details:", userError.message);
@@ -457,8 +465,11 @@ export const handleGetAllBookings = async (user_id) => {
       }
     }
   }
+
+  console.log("Final Data:", data);
   return data;
 };
+
 
 export const handleGetBookingsOfStylist = async (user_id, stylist_id) => {
   const salon_id = await getSalonIdByAdmin(user_id);

@@ -343,7 +343,7 @@ export const handleAddStylist = async (user_id, stylistDetails) => {
   return { message: "Stylist added", data };
 };
 
-export const handleDeleteStylist = async (user_id, stylist_id) => {
+export const handleDisableStylist = async (user_id, stylist_id) => {
   const salon_id = await getSalonIdByAdmin(user_id);
   const stylistSalonId = await getStylistSalonId(stylist_id);
 
@@ -354,6 +354,24 @@ export const handleDeleteStylist = async (user_id, stylist_id) => {
   const { data, error } = await supabase
       .from("stylist")
       .update({ is_active: false })
+      .eq("stylist_id", stylist_id)
+      .select();
+
+  if (error) throw new Error(error.message);
+  return { message: "Stylist deleted", data };
+};
+
+export const handleActivateStylist = async (user_id, stylist_id) => {
+  const salon_id = await getSalonIdByAdmin(user_id);
+  const stylistSalonId = await getStylistSalonId(stylist_id);
+
+  if (salon_id !== stylistSalonId) {
+    throw new Error("Unauthorized to activate this stylist");
+  }
+
+  const { data, error } = await supabase
+      .from("stylist")
+      .update({ is_active: true })
       .eq("stylist_id", stylist_id)
       .select();
 

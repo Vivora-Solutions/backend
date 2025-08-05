@@ -128,6 +128,37 @@ export const handleGetAllStylistsForSalon = async (user_id) => {
   return { message: "Stylists fetched successfully", data: stylists };
 };
 
+export const handleGetStylistsWithSchedule = async (user_id, stylist_id) => {
+  // Fetch stylist details
+  const salon_id = await getSalonIdByAdmin(user_id);
+  const { data: stylist, error: stylistError } = await supabase
+    .from("stylist")
+    .select("*")
+    .eq("stylist_id", stylist_id)
+    .eq("salon_id", salon_id)
+    .single();
+
+  if (stylistError) throw new Error(stylistError.message);
+
+  // Fetch schedule for the stylist
+  const { data: schedule, error: scheduleError } = await supabase
+    .from("stylist_work_schedule_new")
+    .select("*")
+    .eq("stylist_id", stylist_id);
+
+  if (scheduleError) throw new Error(scheduleError.message);
+
+  const stylistWithSchedule = { ...stylist, schedule };
+
+  console.log("Stylist with schedule:", stylistWithSchedule);
+
+  return {
+    message: "Stylist schedule fetched successfully",
+    data: stylistWithSchedule,
+  };
+};
+
+
 export const handleGetAllStylistsWithSchedule = async (user_id) => {
   const salon_id = await getSalonIdByAdmin(user_id);
 

@@ -15,7 +15,6 @@ import {
 import {
   getAllStylists,
   addStylist,
-  deleteStylist,
   updateStylistName,
   updateStylistContact,
   updateStylistProfilePic,
@@ -25,7 +24,7 @@ import {
   addServicesToStylist,
   deleteServicesFromStylist,
   getServicesOfStylist,
-  updateStylist
+  updateStylist, activateStylist, disableStylist
 } from '../controllers/salonAdminStylistRelatedController.js';
 
 import {
@@ -47,7 +46,8 @@ import {
   editStylistLeave,
   deleteStylistLeave,
   getAllLeavesForStylist,
-  getStylistsForSchedule
+  getStylistsForSchedule,
+  getStylistsWithSchedule
 } from "../controllers/salonAdminscheduleRelatedController.js";
 
 import {
@@ -98,8 +98,11 @@ router.put('/images/:imageId', requireAuth, updateBannerImage);
 router.get("/stylists", requireAuth, getAllStylists);
 // Add stylist
 router.post('/stylist', requireAuth, addStylist);
-// Delete stylist
-router.delete('/stylist/:stylist_id', requireAuth, deleteStylist);
+
+// Activate stylist
+router.put('/stylist/activate/:stylist_id', requireAuth, activateStylist);
+// Disable stylist
+router.put('/stylist/disable/:stylist_id', requireAuth, disableStylist);
 
 router.put('/stylist/:stylist_id', requireAuth, updateStylist);
 
@@ -157,6 +160,8 @@ router.put('/services/:serviceId', requireAuth, updateService);
 
 //new
 
+
+router.get("/schedule/stylists/:stylistId", requireAuth, getStylistsWithSchedule);
 // Get all stylists and their schedules for a salon
 router.get("/schedule/stylists", requireAuth, getAllStylistsWithSchedule);
 // Add a new schedule for a stylist

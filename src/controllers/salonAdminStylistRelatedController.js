@@ -1,7 +1,6 @@
 import {
   handleGetAllStylists,
   handleAddStylist,
-  handleDeleteStylist,
   handleUpdateStylistName,
   handleUpdateStylistContact,
   handleUpdateStylistProfilePic,
@@ -10,7 +9,7 @@ import {
   handleDeleteStylistBio,
   handleAddServicesToStylist,
   handleDeleteServicesFromStylist,
-  handleGetServicesOfStylist
+  handleGetServicesOfStylist, handleDisableStylist, handleActivateStylist
 
 } from '../services/salonAdminStylistRelatedServices.js';
 
@@ -39,7 +38,7 @@ export const addStylist = async (req, res) => {
   }
 };
 
-export const deleteStylist = async (req, res) => {
+export const disableStylist = async (req, res) => {
   try {
     const user_id = req.userId;
     const { stylist_id } = req.params;
@@ -47,7 +46,22 @@ export const deleteStylist = async (req, res) => {
     if (!user_id || !stylist_id)
       return res.status(400).json({ error: "Missing required data" });
 
-    const result = await handleDeleteStylist(user_id, stylist_id);
+    const result = await handleDisableStylist(user_id, stylist_id);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const activateStylist = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    const { stylist_id } = req.params;
+
+    if (!user_id || !stylist_id)
+      return res.status(400).json({ error: "Missing required data" });
+
+    const result = await handleActivateStylist(user_id, stylist_id);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -71,7 +85,7 @@ export const updateStylistName = async (req, res) => {
 
 export const updateStylist = async (req, res) => {
   try {
-    console.log("Updating stylist details");
+    console.log("Updating stylist details in the Controller");
     const user_id = req.userId;
     const { stylist_id } = req.params;
     const data = req.body;
