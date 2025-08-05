@@ -87,6 +87,7 @@ export const getAllServices = async(req,res) =>{
 export const updateService = async (req, res) => {
   try {
     const user_id = req.userId;
+    console.log("Now in update stylist controller");
     const { serviceId } = req.params;
     const { service_name, price, duration_minutes } = req.body;
 

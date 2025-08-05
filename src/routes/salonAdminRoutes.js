@@ -163,7 +163,7 @@ router.put('/services/:serviceId', requireAuth, updateService);
 
 //new
 
-
+// Get one stylist schedule
 router.get("/schedule/stylists/:stylistId", requireAuth, getStylistsWithSchedule);
 // Get all stylists and their schedules for a salon
 router.get("/schedule/stylists", requireAuth, getAllStylistsWithSchedule);

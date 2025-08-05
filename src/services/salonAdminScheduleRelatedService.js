@@ -297,6 +297,7 @@ export const handleAddStylistSchedule = async (user_id, body) => {
 
 
 export const handleUpdateStylistSchedule = async (user_id, body) => {
+  console.log("Daminduuuuuuu"+ body)
   const {
     stylist_id,
     schedule_id,
@@ -306,6 +307,7 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
   } = body;
 
   const adminSalonId = await getSalonIdByAdmin(user_id);
+  console.log("Stylists with schedule:", stylist_id, schedule_id);
 
   // Check if schedule exists and belongs to this stylist
   const { data: schedule, error: scheduleError } = await supabase
@@ -336,8 +338,10 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
   if (stylist.salon_id !== adminSalonId) {
     throw new Error("You do not have permission to update this schedule");
   }
+  console.log("Stylist with schedule:", stylist_id, schedule_id);
 
   // Perform the update
+  console.log("Stylist with schedule fetched successfully", day_of_week);
   const { data, error: updateError } = await supabase
       .from("stylist_work_schedule_new")
       .update({
@@ -350,7 +354,9 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
       .select();
 
   if (updateError) {
+    console.log(updateError.message);
     throw new Error(updateError.message);
+
   }
 
   return {

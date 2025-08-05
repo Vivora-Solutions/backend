@@ -195,7 +195,7 @@ export const handleAddService = async (user_id, serviceDetails) => {
 
 
 export const handleUpdateService = async (user_id, serviceId, serviceDetails) => {
-
+  console.log("Now in service" , serviceDetails);
   const salon_id = await getSalonIdByAdmin(user_id);
   const serviceSalonId = await getServiceSalonId(serviceId);
   if (salon_id !== serviceSalonId) throw new Error('Unauthorized to update this service');
