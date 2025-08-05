@@ -7,7 +7,10 @@ import {
   fetchSalonsByType,
   fetchStylistsBySalon,
   fetchStylistAvailability,
-  fetchSalonsByServiceName, getAllServicesBySalonId, getAvailableTimeSlotss,
+  fetchSalonsByServiceName,
+  getAllServicesBySalonId,
+  getAvailableTimeSlotss,
+  fetchServiceById,
   getAvailableTimeSlotsSithum
 } from '../services/salonService.js';
 
@@ -88,14 +91,14 @@ export const getStylistsBySalonId = async (req, res) => {
   }
 };
 
-export const getAvailableTimeSlots = async (req, res) => {
-  try {
-    const data = await fetchStylistAvailability(req.params.stylistId);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// export const getAvailableTimeSlots = async (req, res) => {
+//   try {
+//     const data = await fetchStylistAvailability(req.params.stylistId);
+//     res.json(data);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
 
 
@@ -136,6 +139,8 @@ export const fetchSalonServices = async (req, res) => {
   }
 };
 
+
+// getAvailableTimeSlots
 
 // getAvailableTimeSlots
 
@@ -201,6 +206,29 @@ export const fetchAvailableTimeSlotsSithum = async (req, res) => {
     });
   }
 };
+
+
+export const getServiceById = async (req, res) => {
+  try {
+    const { id } = req.query;
+    console.log("Requested service ID:", id);
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Service ID is required in query' });
+    }
+
+    const service = await fetchServiceById(id);
+    return res.status(200).json(service);
+  } catch (err) {
+    console.error('getServiceById error:', err);
+
+    const status = err.status || 500;
+    const message = err.message || 'Unexpected server error';
+
+    return res.status(status).json({ error: message });
+  }
+};
+
 
 
 

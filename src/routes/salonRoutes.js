@@ -6,10 +6,11 @@ import {
   getSalonsByName,
   getSalonsByType,
   getStylistsBySalonId,
-  getAvailableTimeSlots,
-  getSalonsByServiceName, fetchSalonServices, fetchAvailableTimeSlots,
-  fetchAvailableTimeSlotsSithum
+  //getAvailableTimeSlots,
+  getSalonsByServiceName, fetchSalonServices, fetchAvailableTimeSlots, getServiceById, fetchAvailableTimeSlotsSithum
 } from '../controllers/salonController.js';
+
+import {requireAuth} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -28,10 +29,17 @@ router.get('/type/:id', getSalonsByType);                               //http:/
 // Get all stylists by salon ID                                 
 router.get('/:id/stylists', getStylistsBySalonId);                    //http://localhost:3000/api/salons/2da738de-ab0e-4cc5-9e5a-a4bfcbb43dc0/stylists
 // Get available time slots for a stylist
-router.get('/stylist/:stylistId/availability', getAvailableTimeSlots);  //http://localhost:3000/api/salons/stylist/b5991531-a0e1-460e-bce9-3dee1056d3b6/availability
+//router.get('/stylist/:stylistId/availability', getAvailableTimeSlots);  //http://localhost:3000/api/salons/stylist/b5991531-a0e1-460e-bce9-3dee1056d3b6/availability
 // Get all services of a salon
 router.get('/:salonId/services', fetchSalonServices);
 
+
+
+
+// Get available time slots
+//router.post('/available-time-slots', fetchAvailableTimeSlots);
+// Get service details and salon details using service id
+router.get('/service-details', requireAuth,  getServiceById);
 
 // Get available time slots
 router.post('/available-time-slots', fetchAvailableTimeSlots);

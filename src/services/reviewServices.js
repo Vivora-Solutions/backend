@@ -1,5 +1,43 @@
 import supabase from '../config/supabaseClient.js';
 
+
+//handleGetReviews
+export const handleGetReviews = async (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+
+  const { data, error, count } = await supabase
+      .from('customer_reviews')
+      .select(`
+      review_text,
+      star_rating,
+      created_at,
+      updated_at,
+      salon (
+        salon_name
+      ),
+      user (
+        customer (
+          first_name
+        )
+      )
+    `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+  if (error) throw new Error(error.message);
+
+  return {
+    data,
+    pagination: {
+      page,
+      limit,
+      total: count,
+      totalPages: Math.ceil(count / limit)
+    }
+  };
+};
+
+
 export const handleCreateReview = async (userId, reviewData) => {
   const { booking_id, salon_id, review_text, star_rating } = reviewData;
   

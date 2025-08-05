@@ -1,7 +1,6 @@
 import {
   handleGetAllStylists,
   handleAddStylist,
-  handleDeleteStylist,
   handleUpdateStylistName,
   handleUpdateStylistContact,
   handleUpdateStylistProfilePic,
@@ -10,9 +9,10 @@ import {
   handleDeleteStylistBio,
   handleAddServicesToStylist,
   handleDeleteServicesFromStylist,
-  handleGetServicesOfStylist,
-  handleUpdateStylist,
-} from "../services/salonAdminStylistRelatedServices.js";
+  handleGetServicesOfStylist, handleDisableStylist, handleActivateStylist
+
+} from '../services/salonAdminStylistRelatedServices.js';
+
 
 export const getAllStylists = async (req, res) => {
   try {
@@ -38,7 +38,7 @@ export const addStylist = async (req, res) => {
   }
 };
 
-export const deleteStylist = async (req, res) => {
+export const disableStylist = async (req, res) => {
   try {
     const user_id = req.userId;
     const { stylist_id } = req.params;
@@ -46,7 +46,22 @@ export const deleteStylist = async (req, res) => {
     if (!user_id || !stylist_id)
       return res.status(400).json({ error: "Missing required data" });
 
-    const result = await handleDeleteStylist(user_id, stylist_id);
+    const result = await handleDisableStylist(user_id, stylist_id);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const activateStylist = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    const { stylist_id } = req.params;
+
+    if (!user_id || !stylist_id)
+      return res.status(400).json({ error: "Missing required data" });
+
+    const result = await handleActivateStylist(user_id, stylist_id);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -59,8 +74,7 @@ export const updateStylistName = async (req, res) => {
     const { stylist_id } = req.params;
     const { new_name } = req.body;
 
-    if (!new_name)
-      return res.status(400).json({ error: "New name is required" });
+    if (!new_name) return res.status(400).json({ error: 'New name is required' });
 
     const result = await handleUpdateStylistName(user_id, stylist_id, new_name);
     res.status(200).json(result);
@@ -71,7 +85,7 @@ export const updateStylistName = async (req, res) => {
 
 export const updateStylist = async (req, res) => {
   try {
-    console.log("Updating stylist details");
+    console.log("Updating stylist details in the Controller");
     const user_id = req.userId;
     const { stylist_id } = req.params;
     const data = req.body;
@@ -86,20 +100,16 @@ export const updateStylist = async (req, res) => {
   }
 };
 
+
 export const updateStylistContact = async (req, res) => {
   try {
     const user_id = req.userId;
     const { stylist_id } = req.params;
     const { new_contact } = req.body;
 
-    if (!new_contact)
-      return res.status(400).json({ error: "New contact number is required" });
+    if (!new_contact) return res.status(400).json({ error: 'New contact number is required' });
 
-    const result = await handleUpdateStylistContact(
-      user_id,
-      stylist_id,
-      new_contact
-    );
+    const result = await handleUpdateStylistContact(user_id, stylist_id, new_contact);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -112,14 +122,9 @@ export const updateStylistProfilePic = async (req, res) => {
     const { stylist_id } = req.params;
     const { new_link } = req.body;
 
-    if (!new_link)
-      return res.status(400).json({ error: "New image link is required" });
+    if (!new_link) return res.status(400).json({ error: 'New image link is required' });
 
-    const result = await handleUpdateStylistProfilePic(
-      user_id,
-      stylist_id,
-      new_link
-    );
+    const result = await handleUpdateStylistProfilePic(user_id, stylist_id, new_link);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -144,7 +149,7 @@ export const updateStylistBio = async (req, res) => {
     const { stylist_id } = req.params;
     const { new_bio } = req.body;
 
-    if (!new_bio) return res.status(400).json({ error: "New bio is required" });
+    if (!new_bio) return res.status(400).json({ error: 'New bio is required' });
 
     const result = await handleUpdateStylistBio(user_id, stylist_id, new_bio);
     res.status(200).json(result);
@@ -165,22 +170,17 @@ export const deleteStylistBio = async (req, res) => {
   }
 };
 
+
 export const addServicesToStylist = async (req, res) => {
   const user_id = req.userId;
   const { stylist_id, service_ids } = req.body;
 
   if (!stylist_id || !Array.isArray(service_ids)) {
-    return res
-      .status(400)
-      .json({ error: "Stylist ID and service_ids are required" });
+    return res.status(400).json({ error: 'Stylist ID and service_ids are required' });
   }
 
   try {
-    const result = await handleAddServicesToStylist(
-      user_id,
-      stylist_id,
-      service_ids
-    );
+    const result = await handleAddServicesToStylist(user_id, stylist_id, service_ids);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -192,17 +192,11 @@ export const deleteServicesFromStylist = async (req, res) => {
   const { stylist_id, service_ids } = req.body;
 
   if (!stylist_id || !Array.isArray(service_ids)) {
-    return res
-      .status(400)
-      .json({ error: "Stylist ID and service_ids are required" });
+    return res.status(400).json({ error: 'Stylist ID and service_ids are required' });
   }
 
   try {
-    const result = await handleDeleteServicesFromStylist(
-      user_id,
-      stylist_id,
-      service_ids
-    );
+    const result = await handleDeleteServicesFromStylist(user_id, stylist_id, service_ids);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -214,7 +208,7 @@ export const getServicesOfStylist = async (req, res) => {
   const { stylist_id } = req.params;
 
   if (!stylist_id) {
-    return res.status(400).json({ error: "Stylist ID is required" });
+    return res.status(400).json({ error: 'Stylist ID is required' });
   }
 
   try {
