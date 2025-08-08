@@ -27,29 +27,66 @@ export const handleGetAllStylists = async (user_id) => {
 };
 
 // Add stylist to salon (only by the owner)
+// export const handleAddStylist = async (user_id, stylistDetails) => {
+//   const salon_id = await getSalonIdByAdmin(user_id);
+//
+//   const { stylist_name, stylist_contact_number, profile_pic_link, bio } =
+//       stylistDetails;
+//
+//   const { data, error } = await supabase
+//       .from("stylist")
+//       .insert([
+//         {
+//           stylist_name,
+//           stylist_contact_number,
+//           profile_pic_link,
+//           bio,
+//           salon_id,
+//           is_active: true,
+//         },
+//       ])
+//       .select();
+//
+//   if (error) throw new Error(error.message);
+//   return { message: "Stylist added", data };
+// };
+
+
 export const handleAddStylist = async (user_id, stylistDetails) => {
   const salon_id = await getSalonIdByAdmin(user_id);
 
-  const { stylist_name, stylist_contact_number, profile_pic_link, bio } =
-      stylistDetails;
+  const {
+    stylist_name,
+    stylist_contact_number,
+    profile_pic_link,
+    bio,
+  } = stylistDetails;
+
+  // Construct insert object
+  const insertData = {
+    stylist_name,
+    stylist_contact_number,
+    bio,
+    salon_id,
+    is_active: true,
+  };
+
+  // Only include profile_pic_link if it's provided (non-empty)
+  if (profile_pic_link) {
+    insertData.profile_pic_link = profile_pic_link;
+  }
 
   const { data, error } = await supabase
       .from("stylist")
-      .insert([
-        {
-          stylist_name,
-          stylist_contact_number,
-          profile_pic_link,
-          bio,
-          salon_id,
-          is_active: true,
-        },
-      ])
+      .insert([insertData])
       .select();
 
   if (error) throw new Error(error.message);
   return { message: "Stylist added", data };
 };
+
+
+
 
 export const handleDisableStylist = async (user_id, stylist_id) => {
   const salon_id = await getSalonIdByAdmin(user_id);
@@ -150,73 +187,73 @@ export const handleUpdateStylistContact = async (
   return { message: "Contact number updated", data };
 };
 
-export const handleUpdateStylistProfilePic = async (
-    user_id,
-    stylist_id,
-    new_link
-) => {
-  const salon_id = await getSalonIdByAdmin(user_id);
-  const stylistSalonId = await getStylistSalonId(stylist_id);
-
-  if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
-
-  const { data, error } = await supabase
-      .from("stylist")
-      .update({ profile_pic_link: new_link, updated_at: new Date() })
-      .eq("stylist_id", stylist_id)
-      .select();
-
-  if (error) throw new Error(error.message);
-  return { message: "Profile picture updated", data };
-};
-
-export const handleDeleteStylistProfilePic = async (user_id, stylist_id) => {
-  const salon_id = await getSalonIdByAdmin(user_id);
-  const stylistSalonId = await getStylistSalonId(stylist_id);
-
-  if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
-
-  const { data, error } = await supabase
-      .from("stylist")
-      .update({ profile_pic_link: null, updated_at: new Date() })
-      .eq("stylist_id", stylist_id)
-      .select();
-
-  if (error) throw new Error(error.message);
-  return { message: "Profile picture removed", data };
-};
-
-export const handleUpdateStylistBio = async (user_id, stylist_id, new_bio) => {
-  const salon_id = await getSalonIdByAdmin(user_id);
-  const stylistSalonId = await getStylistSalonId(stylist_id);
-
-  if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
-
-  const { data, error } = await supabase
-      .from("stylist")
-      .update({ bio: new_bio, updated_at: new Date() })
-      .eq("stylist_id", stylist_id)
-      .select();
-
-  if (error) throw new Error(error.message);
-  return { message: "Bio updated", data };
-};
-
-export const handleDeleteStylistBio = async (user_id, stylist_id) => {
-  const salon_id = await getSalonIdByAdmin(user_id);
-  const stylistSalonId = await getStylistSalonId(stylist_id);
-
-  if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
-
-  const { data, error } = await supabase
-      .from("stylist")
-      .update({ bio: null, updated_at: new Date() })
-      .eq("stylist_id", stylist_id)
-      .select();
-
-  if (error) throw new Error(error.message);
-  return { message: "Bio removed", data };
-};
+// export const handleUpdateStylistProfilePic = async (
+//     user_id,
+//     stylist_id,
+//     new_link
+// ) => {
+//   const salon_id = await getSalonIdByAdmin(user_id);
+//   const stylistSalonId = await getStylistSalonId(stylist_id);
+//
+//   if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
+//
+//   const { data, error } = await supabase
+//       .from("stylist")
+//       .update({ profile_pic_link: new_link, updated_at: new Date() })
+//       .eq("stylist_id", stylist_id)
+//       .select();
+//
+//   if (error) throw new Error(error.message);
+//   return { message: "Profile picture updated", data };
+// };
+//
+// export const handleDeleteStylistProfilePic = async (user_id, stylist_id) => {
+//   const salon_id = await getSalonIdByAdmin(user_id);
+//   const stylistSalonId = await getStylistSalonId(stylist_id);
+//
+//   if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
+//
+//   const { data, error } = await supabase
+//       .from("stylist")
+//       .update({ profile_pic_link: null, updated_at: new Date() })
+//       .eq("stylist_id", stylist_id)
+//       .select();
+//
+//   if (error) throw new Error(error.message);
+//   return { message: "Profile picture removed", data };
+// };
+//
+// export const handleUpdateStylistBio = async (user_id, stylist_id, new_bio) => {
+//   const salon_id = await getSalonIdByAdmin(user_id);
+//   const stylistSalonId = await getStylistSalonId(stylist_id);
+//
+//   if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
+//
+//   const { data, error } = await supabase
+//       .from("stylist")
+//       .update({ bio: new_bio, updated_at: new Date() })
+//       .eq("stylist_id", stylist_id)
+//       .select();
+//
+//   if (error) throw new Error(error.message);
+//   return { message: "Bio updated", data };
+// };
+//
+// export const handleDeleteStylistBio = async (user_id, stylist_id) => {
+//   const salon_id = await getSalonIdByAdmin(user_id);
+//   const stylistSalonId = await getStylistSalonId(stylist_id);
+//
+//   if (salon_id !== stylistSalonId) throw new Error("Unauthorized");
+//
+//   const { data, error } = await supabase
+//       .from("stylist")
+//       .update({ bio: null, updated_at: new Date() })
+//       .eq("stylist_id", stylist_id)
+//       .select();
+//
+//   if (error) throw new Error(error.message);
+//   return { message: "Bio removed", data };
+// };
 
 export const handleAddServicesToStylist = async (
     user_id,
@@ -225,7 +262,7 @@ export const handleAddServicesToStylist = async (
 ) => {
   const salon_id = await getSalonIdByAdmin(user_id);
 
-  // 1. Check if stylist belongs to admin's salon
+  // 1. Validate stylist belongs to the salon
   const { data: stylist, error: stylistError } = await supabase
       .from("stylist")
       .select("stylist_id")
@@ -237,7 +274,7 @@ export const handleAddServicesToStylist = async (
     throw new Error("Stylist not found in your salon");
   }
 
-  // 2. Check if all service_ids belong to admin's salon
+  // 2. Validate all services belong to this salon
   const { data: validServices, error: serviceError } = await supabase
       .from("service")
       .select("service_id")
@@ -257,46 +294,68 @@ export const handleAddServicesToStylist = async (
     );
   }
 
-  // 3. Filter out services already assigned to this stylist
-  const { data: existingServices, error: existingError } = await supabase
+  // 3. Fetch existing stylist_service records
+  const { data: existingRecords, error: existingError } = await supabase
       .from("stylist_service")
-      .select("service_id")
+      .select("service_id, can_be")
       .eq("stylist_id", stylist_id)
       .eq("salon_id", salon_id);
 
   if (existingError) throw new Error(existingError.message);
 
-  const alreadyAssigned = new Set(existingServices.map((s) => s.service_id));
-  const newServicesToAdd = validServiceIds.filter(
-      (id) => !alreadyAssigned.has(id)
-  );
+  const toUpdate = [];
+  const toInsert = [];
 
-  if (newServicesToAdd.length === 0) {
-    return {
-      message: "All provided services are already assigned to this stylist.",
-    };
+  for (const service_id of validServiceIds) {
+    const existing = existingRecords.find((rec) => rec.service_id === service_id);
+
+    if (existing) {
+      if (existing.can_be === false) {
+        toUpdate.push(service_id); // Update to can_be = true
+      }
+      // If already can_be = true, do nothing
+    } else {
+      toInsert.push(service_id); // Insert new record
+    }
   }
 
-  // 4. Insert only new service assignments
-  const insertData = newServicesToAdd.map((service_id) => ({
-    stylist_id,
-    service_id,
-    salon_id,
-  }));
+  // 4. Perform updates
+  for (const service_id of toUpdate) {
+    const { error: updateError } = await supabase
+        .from("stylist_service")
+        .update({ can_be: true })
+        .eq("stylist_id", stylist_id)
+        .eq("salon_id", salon_id)
+        .eq("service_id", service_id);
 
-  const { data: inserted, error: insertError } = await supabase
-      .from("stylist_service")
-      .insert(insertData);
+    if (updateError) {
+      throw new Error(`Failed to re-enable service ${service_id}: ${updateError.message}`);
+    }
+  }
 
-  if (insertError) throw new Error(insertError.message);
+  // 5. Perform inserts
+  if (toInsert.length > 0) {
+    const insertData = toInsert.map((service_id) => ({
+      stylist_id,
+      service_id,
+      salon_id,
+      can_be: true,
+    }));
+
+    const { error: insertError } = await supabase
+        .from("stylist_service")
+        .insert(insertData);
+
+    if (insertError) throw new Error(insertError.message);
+  }
 
   return {
-    message: "New services added to stylist.",
-    data: inserted,
+    message: `Updated ${toUpdate.length}, inserted ${toInsert.length} service(s) for stylist.`,
   };
 };
 
-export const handleDeleteServicesFromStylist = async (
+
+export const handleDisableServicesFromStylist = async (
     user_id,
     stylist_id,
     service_ids
@@ -305,14 +364,15 @@ export const handleDeleteServicesFromStylist = async (
 
   const { error } = await supabase
       .from("stylist_service")
-      .delete()
+      .update({ can_be: false, updated_at: new Date().toISOString() }) // update both can_be and updated_at
       .in("service_id", service_ids)
       .eq("stylist_id", stylist_id)
       .eq("salon_id", salon_id);
 
   if (error) throw new Error(error.message);
-  return { message: "Services removed from stylist" };
+  return { message: "Services disabled for stylist" };
 };
+
 
 export const handleGetServicesOfStylist = async (user_id, stylist_id) => {
   // Step 1: Get the salon_id of the admin
@@ -351,7 +411,8 @@ export const handleGetServicesOfStylist = async (user_id, stylist_id) => {
       )
     `
       )
-      .eq("stylist_id", stylist_id);
+      .eq("stylist_id", stylist_id)
+      .eq("can_be", true);
 
   if (error) {
     throw new Error(error.message);

@@ -4,12 +4,12 @@ import {
   handleAddStylist,
   handleUpdateStylistName,
   handleUpdateStylistContact,
-  handleUpdateStylistProfilePic,
-  handleDeleteStylistProfilePic,
-  handleUpdateStylistBio,
-  handleDeleteStylistBio,
+  // handleUpdateStylistProfilePic,
+  // handleDeleteStylistProfilePic,
+  // handleUpdateStylistBio,
+  // handleDeleteStylistBio,
   handleAddServicesToStylist,
-  handleDeleteServicesFromStylist,
+  handleDisableServicesFromStylist,
   handleGetServicesOfStylist, handleDisableStylist, handleActivateStylist, handleUpdateStylist
 
 } from '../services/salonAdminStylistRelatedServices.js';
@@ -118,75 +118,75 @@ export const updateStylist = async (req, res) => {
 };
 
 
-export const updateStylistContact = async (req, res) => {
-  try {
-    const user_id = req.userId;
-    const { stylist_id } = req.params;
-    const { new_contact } = req.body;
-
-    if (!new_contact) return res.status(400).json({ error: 'New contact number is required' });
-
-    const result = await handleUpdateStylistContact(user_id, stylist_id, new_contact);
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-export const updateStylistProfilePic = async (req, res) => {
-  try {
-    const user_id = req.userId;
-    const { stylist_id } = req.params;
-    const { new_link } = req.body;
-
-    if (!new_link) return res.status(400).json({ error: 'New image link is required' });
-
-    const result = await handleUpdateStylistProfilePic(user_id, stylist_id, new_link);
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-export const deleteStylistProfilePic = async (req, res) => {
-  try {
-    const user_id = req.userId;
-    const { stylist_id } = req.params;
-
-    const result = await handleDeleteStylistProfilePic(user_id, stylist_id);
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-export const updateStylistBio = async (req, res) => {
-  try {
-    const user_id = req.userId;
-    const { stylist_id } = req.params;
-    const { new_bio } = req.body;
-
-    if (!new_bio) return res.status(400).json({ error: 'New bio is required' });
-
-    const result = await handleUpdateStylistBio(user_id, stylist_id, new_bio);
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-export const deleteStylistBio = async (req, res) => {
-  try {
-    const user_id = req.userId;
-    const { stylist_id } = req.params;
-
-    const result = await handleDeleteStylistBio(user_id, stylist_id);
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
+// export const updateStylistContact = async (req, res) => {
+//   try {
+//     const user_id = req.userId;
+//     const { stylist_id } = req.params;
+//     const { new_contact } = req.body;
+//
+//     if (!new_contact) return res.status(400).json({ error: 'New contact number is required' });
+//
+//     const result = await handleUpdateStylistContact(user_id, stylist_id, new_contact);
+//     res.status(200).json(result);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+//
+// export const updateStylistProfilePic = async (req, res) => {
+//   try {
+//     const user_id = req.userId;
+//     const { stylist_id } = req.params;
+//     const { new_link } = req.body;
+//
+//     if (!new_link) return res.status(400).json({ error: 'New image link is required' });
+//
+//     const result = await handleUpdateStylistProfilePic(user_id, stylist_id, new_link);
+//     res.status(200).json(result);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+//
+// export const deleteStylistProfilePic = async (req, res) => {
+//   try {
+//     const user_id = req.userId;
+//     const { stylist_id } = req.params;
+//
+//     const result = await handleDeleteStylistProfilePic(user_id, stylist_id);
+//     res.status(200).json(result);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+//
+// export const updateStylistBio = async (req, res) => {
+//   try {
+//     const user_id = req.userId;
+//     const { stylist_id } = req.params;
+//     const { new_bio } = req.body;
+//
+//     if (!new_bio) return res.status(400).json({ error: 'New bio is required' });
+//
+//     const result = await handleUpdateStylistBio(user_id, stylist_id, new_bio);
+//     res.status(200).json(result);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+//
+// export const deleteStylistBio = async (req, res) => {
+//   try {
+//     const user_id = req.userId;
+//     const { stylist_id } = req.params;
+//
+//     const result = await handleDeleteStylistBio(user_id, stylist_id);
+//     res.status(200).json(result);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+//
 
 export const addServicesToStylist = async (req, res) => {
   const user_id = req.userId;
@@ -204,16 +204,17 @@ export const addServicesToStylist = async (req, res) => {
   }
 };
 
-export const deleteServicesFromStylist = async (req, res) => {
+export const disableServicesFromStylist = async (req, res) => {
   const user_id = req.userId;
-  const { stylist_id, service_ids } = req.body;
+  const { stylist_id } = req.params;
+  const { service_ids } = req.body;
 
   if (!stylist_id || !Array.isArray(service_ids)) {
     return res.status(400).json({ error: 'Stylist ID and service_ids are required' });
   }
 
   try {
-    const result = await handleDeleteServicesFromStylist(user_id, stylist_id, service_ids);
+    const result = await handleDisableServicesFromStylist(user_id, stylist_id, service_ids);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -15,9 +15,9 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Proper CORS setup to allow cookies
+//  Proper CORS setup to allow cookies
 const corsOptions = {
-  origin: 'http://localhost:5173', // your frontend origin
+  origin: 'http://localhost:5173',
   credentials: true,
 };
 
@@ -33,7 +33,6 @@ app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/salons', salonRoutes);
 app.use('/api/review', userReviewRoutes);
 app.use('/api/bookings', userBookingRoutes);
-
 
 app.use('/api/profile', profileRoute);
 

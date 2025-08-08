@@ -5,7 +5,7 @@ import {
   getUserBookings,
   getBookingById,
   //updateBooking,
-  deleteBooking,
+  cancelBooking,
   //rescheduleBooking,
   getBookingHistory, fetchStylistsBySalonAndServices,
 } from "../controllers/bookingController.js";
@@ -26,7 +26,7 @@ router.get('/:bookingId', requireAuth, getBookingById);                         
 // Edit a booking by a user can be able to edit booking service also - you can do it either do edit booking table in one route and change that books services in a another route / do both in one route
 //router.put('/:bookingId', requireAuth, updateBooking);             // PUT {{base_url}}/api/booking/:bookingId
 // cancel a booking by a user
-router.delete('/:bookingId', requireAuth, deleteBooking);      // PUT {{base_url}}/api/booking/:bookingId/cancel
+router.put('/:bookingId', requireAuth, cancelBooking);      // PUT {{base_url}}/api/booking/:bookingId/cancel
 // reschedule a booking by a user
 //router.put('/:bookingId/reschedule', requireAuth, rescheduleBooking); // PUT {{base_url}}/api/booking/:bookingId/reschedule
 

@@ -16,14 +16,8 @@ import {
   getStylist,
   getAllStylists,
   addStylist,
-  updateStylistName,
-  updateStylistContact,
-  updateStylistProfilePic,
-  deleteStylistProfilePic,
-  updateStylistBio,
-  deleteStylistBio,
   addServicesToStylist,
-  deleteServicesFromStylist,
+  disableServicesFromStylist,
   getServicesOfStylist,
   updateStylist, activateStylist, disableStylist
 } from '../controllers/salonAdminStylistRelatedController.js';
@@ -31,8 +25,6 @@ import {
 import {
   addService,
   deleteService,
-  updateServicePrice,
-  updateServiceDuration,
   getAllServices,
   updateService
 } from '../controllers/salonAdminServiceRelatedController.js';
@@ -107,25 +99,26 @@ router.post('/stylist', requireAuth, addStylist);
 router.put('/stylist/activate/:stylist_id', requireAuth, activateStylist);
 // Disable stylist
 router.put('/stylist/disable/:stylist_id', requireAuth, disableStylist);
-
+// Update stylist details
 router.put('/stylist/:stylist_id', requireAuth, updateStylist);
 
-// Update stylist name
-router.put('/stylist/:stylist_id/name', requireAuth, updateStylistName);
-// Update stylist contact number
-router.put('/stylist/:stylist_id/contact', requireAuth, updateStylistContact);
-// Update profile picture
-router.put('/stylist/:stylist_id/profile-picture', requireAuth, updateStylistProfilePic);
-// Delete profile picture
-router.delete('/stylist/:stylist_id/profile-picture', requireAuth, deleteStylistProfilePic);
-// Update bio
-router.put('/stylist/:stylist_id/bio', requireAuth, updateStylistBio);
-// Delete bio
-router.delete('/stylist/:stylist_id/bio', requireAuth, deleteStylistBio);
+// // Update stylist name
+// router.put('/stylist/:stylist_id/name', requireAuth, updateStylistName);
+// // Update stylist contact number
+// router.put('/stylist/:stylist_id/contact', requireAuth, updateStylistContact);
+// // Update profile picture
+// router.put('/stylist/:stylist_id/profile-picture', requireAuth, updateStylistProfilePic);
+// // Delete profile picture
+// router.delete('/stylist/:stylist_id/profile-picture', requireAuth, deleteStylistProfilePic);
+// // Update bio
+// router.put('/stylist/:stylist_id/bio', requireAuth, updateStylistBio);
+// // Delete bio
+// router.delete('/stylist/:stylist_id/bio', requireAuth, deleteStylistBio);
+
 // Add service to a stylist
 router.post('/stylist/services', requireAuth, addServicesToStylist);
 // Remove service from stylist
-router.post('/stylist/:stylist_id/services', requireAuth, deleteServicesFromStylist);
+router.put('/stylist/:stylist_id/disable-services', requireAuth, disableServicesFromStylist);
 // Get all services of a stylist
 router.get('/stylist/:stylist_id/services', requireAuth, getServicesOfStylist);
 
@@ -139,12 +132,12 @@ router.get('/stylist/:stylist_id/services', requireAuth, getServicesOfStylist);
 router.get('/services', requireAuth, getAllServices);
 // Add new service to the salon
 router.post('/services', requireAuth, addService);
-// Delete a specific service by ID
-// router.delete('/service/:serviceId',  requireAuth, deleteService);
+// Disable a specific service by ID
+//router.put('/service/:serviceId',  requireAuth, deleteService);
 // Update price of a specific service
-router.put('/services/:serviceId/price', requireAuth, updateServicePrice);
-// Update duration of a specific service
-router.put('/services/:serviceId/duration', requireAuth, updateServiceDuration);
+// router.put('/services/:serviceId/price', requireAuth, updateServicePrice);
+// // Update duration of a specific service
+// router.put('/services/:serviceId/duration', requireAuth, updateServiceDuration);
 router.put('/services/:serviceId', requireAuth, updateService);
 
 
