@@ -233,11 +233,15 @@ export const addStylistSchedule = async (req, res) => {
 
 
 export const updateStylistSchedule = async (req, res) => {
+  console.log("Updating stylist schedule...");
   try {
-    const user_id = req.userId;
-    const stylist_id = req.params.stylistId;
-    const schedule_id = req.params.scheduleId;
-    const { day_of_week, start_time_daily, end_time_daily } = req.body;
+    console.log("Now in controller")
+    console.log(req.body)
+
+    const user_id = req.userId
+    const stylist_id = req.params.stylistId
+    const schedule_id = req.params.scheduleId
+    let { day_of_week, start_time_daily, end_time_daily, created } = req.body
 
     if (
         !user_id ||
@@ -247,7 +251,24 @@ export const updateStylistSchedule = async (req, res) => {
         !start_time_daily ||
         !end_time_daily
     ) {
-      return res.status(400).json({ error: "Missing required fields" });
+      return res.status(400).json({ error: "Missing required fields" })
+    }
+
+    // convert day_of_week -> number  (0 = Sunday)
+    if (typeof day_of_week === "string") {
+      const dayMap = {
+        sunday: 0,
+        monday: 1,
+        tuesday: 2,
+        wednesday: 3,
+        thursday: 4,
+        friday: 5,
+        saturday: 6
+      }
+      day_of_week = dayMap[day_of_week.toLowerCase()]
+    } else {
+      // ensure numeric strings become numbers
+      day_of_week = Number(day_of_week)
     }
 
     const result = await handleUpdateStylistSchedule(user_id, {
@@ -256,13 +277,14 @@ export const updateStylistSchedule = async (req, res) => {
       day_of_week,
       start_time_daily,
       end_time_daily,
-    });
+    })
 
-    res.status(200).json(result);
+    res.status(200).json(result)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-};
+}
+
 
 export const addStylistLeave = async (req, res) => {
   try {

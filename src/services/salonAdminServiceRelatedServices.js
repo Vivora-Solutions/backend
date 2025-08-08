@@ -194,26 +194,27 @@ export const handleAddService = async (user_id, serviceDetails) => {
 };
 
 
-export const handleUpdateService = async (user_id, serviceId, serviceDetails) => {
-
+export const handleUpdateService = async (user_id, serviceId, service_name, service_description, service_category, price, duration_minutes, is_available, show_price) => {
+  //console.log("Now in service" , serviceDetails);
   const salon_id = await getSalonIdByAdmin(user_id);
   const serviceSalonId = await getServiceSalonId(serviceId);
   if (salon_id !== serviceSalonId) throw new Error('Unauthorized to update this service');
-  const {
-    service_name,
-    service_description,
-    service_image_link,
-    price,
-    duration_minutes,
-    is_available,
-    show_price,
-  } = serviceDetails;
+  // const {
+  //   service_name,
+  //   service_description,
+  //   service_image_link,
+  //   price,
+  //   duration_minutes,
+  //   is_available,
+  //   show_price,
+  // } = serviceDetails;
   const { data, error } = await supabase
       .from('service')
       .update({
         service_name,
         service_description,
-        service_image_link,
+        service_category,
+        //service_image_link,
         price,
         duration_minutes,
         is_available,

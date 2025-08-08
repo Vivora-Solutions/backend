@@ -87,16 +87,19 @@ export const getAllServices = async(req,res) =>{
 export const updateService = async (req, res) => {
   try {
     const user_id = req.userId;
+    console.log("Now in update service controller");
     const { serviceId } = req.params;
-    const { service_name, price, duration_minutes } = req.body;
+    const { service_name, service_description, service_category, price, duration_minutes, is_available, show_price } = req.body;
 
     if (!user_id || !serviceId || !service_name || price === undefined || duration_minutes === undefined) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-
-    const result = await handleUpdateService(user_id, serviceId, service_name, price, duration_minutes);
+    console.log(user_id, serviceId , service_name, price, duration_minutes);
+    const result = await handleUpdateService(user_id, serviceId, service_name, service_description, service_category, price, duration_minutes, is_available, show_price);
     res.status(200).json(result);
   } catch (err) {
+    console.error('Update service error:', err); // Add this line
     res.status(500).json({ error: err.message });
   }
+
 }
