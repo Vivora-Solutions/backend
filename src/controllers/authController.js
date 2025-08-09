@@ -5,8 +5,11 @@ import {
   fetchAuthenticatedUserDetails,
   registerCustomer,
   registerSalon,
-  completeOAuthRegistration,
+  // completeOAuthRegistration,
   registerCustomerGoogle,
+  handleGoogleOAuthLogin,
+  getCustomerProfile,
+  updateCustomerPhone,
 } from "../services/authService.js";
 
 // export const registerUser = async (req, res) => {
@@ -128,11 +131,72 @@ export const getAuthenticatedUser = async (req, res) => {
 
 // ...existing code...
 
-export const completeOAuthRegistrationController = async (req, res) => {
+// export const completeOAuthRegistrationController = async (req, res) => {
+//   try {
+//     const result = await completeOAuthRegistration(req.userId, req.body);
+//     res.status(200).json(result);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// };
+
+export const googleOAuthLoginController = async (req, res) => {
   try {
-    const result = await completeOAuthRegistration(req.userId, req.body);
+    const { access_token } = req.body;
+    
+    if (!access_token) {
+      return res.status(400).json({ error: "Access token is required" });
+    }
+
+    const sessionData = await handleGoogleOAuthLogin(access_token);
+    const { session, customRole } = sessionData;
+
+    // Set refresh token as a cookie (same as regular login)
+    res.cookie("refresh_token", session.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    // Return access token and role to frontend (same as regular login)
+    res.status(200).json({
+      message: "Google OAuth login successful",
+      access_token: session.access_token,
+      customRole,
+    });
+  } catch (error) {
+    console.error("Google OAuth login error:", error);
+    res.status(401).json({ error: error.message });
+  }
+};
+
+// ...existing code...
+
+export const updatePhoneController = async (req, res) => {
+  try {
+    const { phone_number } = req.body;
+    const userId = req.userId; // From requireAuth middleware
+
+    if (!phone_number) {
+      return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    const result = await updateCustomerPhone(userId, phone_number);
     res.status(200).json(result);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    console.error('Update phone error:', error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const getCustomerProfileController = async (req, res) => {
+  try {
+    const userId = req.userId; // From requireAuth middleware
+    const profile = await getCustomerProfile(userId);
+    res.status(200).json(profile);
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(400).json({ error: error.message });
   }
 };

@@ -24,6 +24,7 @@ export const fetchAuthenticatedUserDetailsAndProfile = async (user_id) => {
 };
 
 
+
 export const updateUserAndCustomerProfile = async (user_id, userData = {}, customerData = {}) => {
     const updates = [];
 
@@ -54,3 +55,17 @@ export const updateUserAndCustomerProfile = async (user_id, userData = {}, custo
 
     return { message: 'User and customer profile updated successfully' };
 };
+
+
+export const addPhoneNumber = async (user_id, phoneNumber) => {
+    const { data, error } = await supabase
+        .from('customer')
+        .update({ contact_number: phoneNumber, updated_at: new Date().toISOString() })
+        .eq('user_id', user_id);
+
+    if (error) {
+        throw new Error('Failed to add phone number: ' + error.message);
+    }
+
+    return data;
+}

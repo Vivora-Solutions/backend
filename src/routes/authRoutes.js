@@ -6,8 +6,12 @@ import {
   getAuthenticatedUser,
   registerCustomerController,
   registerSalonController,
-  completeOAuthRegistrationController,
+  // completeOAuthRegistrationController,
   registerCustomerControllerGoogle,
+  googleOAuthLoginController,
+  updatePhoneController,
+  getCustomerProfileController
+
 } from "../controllers/authController.js";
 
 import { requireAuth } from "../middlewares/authMiddleware.js";
@@ -21,10 +25,13 @@ router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.get("/me", requireAuth, getAuthenticatedUser);
 router.post("/refresh-token", refreshToken);
+router.post("/google-oauth-login", googleOAuthLoginController);
+router.put("/update-phone", requireAuth, updatePhoneController);
+router.get("/customer-profile", requireAuth, getCustomerProfileController);
 // ...existing code...
-router.post(
-  "/complete-oauth-registration",
-  completeOAuthRegistrationController
-);
+// router.post(
+//   "/complete-oauth-registration",
+//   completeOAuthRegistrationController
+// );
 
 export default router;
