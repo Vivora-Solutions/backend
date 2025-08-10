@@ -31,6 +31,9 @@ export const createReview = async (req, res) => {
     
     // Validate required fields
     const { booking_id, salon_id, star_rating } = reviewData;
+    console.log(booking_id);
+    console.log(salon_id);
+    console.log(star_rating);
     
     if (!booking_id || !salon_id || star_rating === undefined) {
       return res.status(400).json({ 
