@@ -55,12 +55,13 @@ export const createReview = async (req, res) => {
 
 export const getUserReviews = async (req, res) => {
   try {
-    const user_id = req.userId;
+    const salon_id = req.params.salonId;
+    console.log(salon_id);
     const { page = 1, limit = 10 } = req.query;
     
-    if (!user_id) return res.status(400).json({ error: 'User ID not found for this user' });
+    if (!salon_id) return res.status(400).json({ error: 'Salon ID not found for this request' });
     
-    const result = await handleGetUserReviews(user_id, parseInt(page), parseInt(limit));
+    const result = await handleGetUserReviews(salon_id, parseInt(page), parseInt(limit));
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

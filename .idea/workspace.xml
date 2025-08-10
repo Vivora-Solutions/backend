@@ -6,19 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="1ff46fa7-34e4-4e56-8f14-b9fdccc44622" name="Changes" comment="add import">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controllers/bookingController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/bookingController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controllers/salonAdminServiceRelatedController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/salonAdminServiceRelatedController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controllers/salonAdminStylistRelatedController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/salonAdminStylistRelatedController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controllers/salonController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/salonController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/salonAdminRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/salonAdminRoutes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/salonRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/salonRoutes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/userBookingRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/userBookingRoutes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/bookingService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/bookingService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/salonAdminServiceRelatedServices.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminServiceRelatedServices.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/salonAdminStylistRelatedServices.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminStylistRelatedServices.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/salonService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/logger.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +66,11 @@
       <workItem from="1754419733483" duration="1594000" />
       <workItem from="1754468570330" duration="5390000" />
       <workItem from="1754562758649" duration="10032000" />
-      <workItem from="1754626523774" duration="21085000" />
+      <workItem from="1754626523774" duration="22336000" />
+      <workItem from="1754755483116" duration="1958000" />
+      <workItem from="1754770296941" duration="2437000" />
+      <workItem from="1754774010205" duration="993000" />
+      <workItem from="1754802296747" duration="1642000" />
     </task>
     <task id="LOCAL-00001">
       <option name="closed" value="true" />

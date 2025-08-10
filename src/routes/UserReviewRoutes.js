@@ -20,7 +20,7 @@ router.get('/review-for-home-page', getReviews);
 // Create a review by a user
 router.post('/', requireAuth, createReview);                       // POST {{base_url}}/api/review  -works
 // Get all reviews of per salon
-router.get('/', requireAuth, getUserReviews);                      // GET {{base_url}}/api/review -    works
+router.get('/:salonId', getUserReviews);                      // GET {{base_url}}/api/review -    works
 // Get a specific review by ID
 router.get('/:reviewId',requireAuth, getReviewById);              // GET {{base_url}}/api/review/:reviewId   -works
 // Edit a review by a user only for that user made reviews

@@ -111,29 +111,24 @@ export const handleCreateReview = async (userId, reviewData) => {
   return data;
 };
 
-export const handleGetUserReviews = async (userId, page = 1, limit = 10) => {
+export const handleGetUserReviews = async (salon_id, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
   
   const { data, error, count } = await supabase
     .from('customer_reviews')
     .select(`
       review_id,
-      booking_id,
-      salon_id,
       review_text,
       star_rating,
       created_at,
       updated_at,
-      salon (
-        salon_name,
-        address
-      ),
-      booking (
-        booking_start_datetime,
-        total_price
-      )
+      user(
+        customer(
+          first_name
+        )
+      )    
     `, { count: 'exact' })
-    .eq('user_id', userId)
+    .eq('salon_id', salon_id)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
     
