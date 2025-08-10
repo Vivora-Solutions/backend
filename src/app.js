@@ -18,7 +18,7 @@ const app = express();
 //  Proper CORS setup to allow cookies
  const corsOptions = {
 //   origin: 'http://localhost:5173',
-  origin: 'https://webvivora-sithum22-3456s-projects.vercel.app',
+  origin: 'https://webvivora.vercel.app',
   credentials: true,
 };
 
