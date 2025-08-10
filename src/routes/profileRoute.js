@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserProfile, updateUserProfile } from '../controllers/profileController.js';
+import { addPhoneNumber, getUserProfile, updateUserProfile } from '../controllers/profileController.js';
 import {requireAuth} from "../middlewares/authMiddleware.js";
 
 
@@ -10,5 +10,8 @@ router.get('/', requireAuth, getUserProfile);
 
 // PUT update user profile by user_id
 router.put('/', requireAuth, updateUserProfile);
+
+// POST add phone number to user profile
+router.post('/add-phone', requireAuth, addPhoneNumber);
 
 export default router;
