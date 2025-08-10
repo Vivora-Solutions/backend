@@ -18,7 +18,7 @@ const app = express();
 //  Proper CORS setup to allow cookies
  const corsOptions = {
 //   origin: 'http://localhost:5173',
-  origin: 'https://webvivora.vercel.app',
+  origin: 'https://web2-two-tau.vercel.app/',
   credentials: true,
 };
 
