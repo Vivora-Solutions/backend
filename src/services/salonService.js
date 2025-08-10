@@ -305,10 +305,17 @@ export const getAvailableTimeSlotsSithum = async ({
   salon_id,
   date,
 }) => {
-  if (!Array.isArray(service_ids) || !stylist_id || !salon_id || !date) {
-    throw new Error(
-      "Missing required input: service_ids, stylist_id, salon_id, or date"
-    );
+  if (!Array.isArray(service_ids) || service_ids.length === 0) {
+    throw new Error("Missing or invalid required input: service_ids (must be a non-empty array)");
+  }
+  if (!stylist_id) {
+    throw new Error("Missing required input: stylist_id");
+  }
+  if (!salon_id) {
+    throw new Error("Missing required input: salon_id");
+  }
+  if (!date) {
+    throw new Error("Missing required input: date");
   }
 
   const dayOfWeek = new Date(date).getUTCDay(); // 0 = Sunday
@@ -330,20 +337,30 @@ export const getAvailableTimeSlotsSithum = async ({
   );
   console.log("Total duration:", totalDuration);
 
-  // 1.5. check leaves
+  // 1.5. check leaves (detect both all-day and partial-day leaves)
   const { data: leaves, error: leaveError } = await supabase
     .from("stylist_leave_new")
     .select("leave_start_time, leave_end_time")
-    .eq("stylist_id", stylist_id)
-    .eq("date", date) // match specific date
-    .eq("leave_start_time", `${date}T00:00:00+00:00`) // match all day leaves start
-    .eq("leave_end_time", `${date}T23:59:59+00:00`); // match all day leaves end
+    .eq("stylist_id", stylist_id);
 
   if (leaveError) throw new Error(leaveError.message);
-  console.log("Leave blocks:", leaves.length); // Fixed variable name
-  if (leaves && leaves.length > 0) {
-    throw new Error("Stylist is on leave on the selected date");
+
+  // Only check for full-day leaves (those covering the entire day)
+  const dateCheckStart = new Date(`${date}T00:00:00Z`);
+  const dateCheckEnd = new Date(`${date}T23:59:59Z`);
+  const hasFullDayLeave = (leaves || []).some((leave) => {
+    const leaveStart = new Date(leave.leave_start_time);
+    const leaveEnd = new Date(leave.leave_end_time);
+    // Check if leave covers the entire day (or most of it)
+    return leaveStart <= dateCheckStart && leaveEnd >= dateCheckEnd;
+  });
+
+  console.log("Full day leave detected:", hasFullDayLeave);
+  if (hasFullDayLeave) {
+    throw new Error("Stylist is on leave for the entire day on the selected date");
   }
+  
+  // Partial day leaves will be handled later in the busy times calculation
 
   // 2. Get working schedule directly from new table
   const { data: scheduleBlocks, error: scheduleError } = await supabase
@@ -353,49 +370,53 @@ export const getAvailableTimeSlotsSithum = async ({
     .eq("stylist_id", stylist_id);
 
   if (scheduleError) throw new Error(scheduleError.message);
-  if (!scheduleBlocks || scheduleBlocks.length === 0) {
-    throw new Error("Stylist not available on selected day");
-  }
-
-  console.log("Schedule blocks:", scheduleBlocks.length);
+  console.log("Schedule blocks:", scheduleBlocks?.length || 0);
 
   // 3. Get leave blocks (only for the specific date)
   const { data: breakBlocks, error: breakError } = await supabase
     .from("stylist_leave_new")
-    .select("booking_start_datetime, booking_end_datetime")
-    .eq("stylist_id", stylist_id);
+    .select("leave_start_time, leave_end_time")
+    .eq("stylist_id", stylist_id)
+    .eq("date", date); // Only fetch leaves for the selected date
 
   if (breakError) throw new Error(breakError.message);
-  console.log("Break blocks:", breakBlocks.length);
+  console.log("Break blocks:", breakBlocks?.length || 0);
 
   // 3.5 Get booked blocks (only for the specific date)
   const { data: bookedBlocks, error: bookedError } = await supabase
     .from("booking")
-    .select("leave_start_time, leave_end_time")
+    .select("booking_start_datetime, booking_end_datetime")
     .eq("stylist_id", stylist_id)
     .eq("salon_id", salon_id);
 
   if (bookedError) throw new Error(bookedError.message);
-  console.log("Booked blocks:", bookedBlocks.length);
-
+  console.log("Booked blocks:", bookedBlocks?.length || 0);
+  
   //3.7 filter the books for the date
+  const dateStart = new Date(`${date}T00:00:00Z`);
+  const dateEnd = new Date(`${date}T23:59:59Z`);
   const filteredBookedBlocks = (bookedBlocks || []).filter((block) => {
     const start = parseTime(block.booking_start_datetime, date);
     const end = parseTime(block.booking_end_datetime, date);
-    return start >= new Date(date) && end <= new Date(date);
+    // Check if booking overlaps with the selected date
+    return start < dateEnd && end > dateStart;
   });
 
   console.log("Filtered booked blocks:", filteredBookedBlocks.length);
 
   // 3.8 combine booked and blocked
   const combinedBlocks = [...filteredBookedBlocks, ...(breakBlocks || [])];
-
-  console.log("Combined blocks:", combinedBlocks.length);
-
+  
   // 4. Convert leave times to busy times
   const busyTimes = (combinedBlocks || []).map((block) => [
-    parseTime(block.booking_start_datetime, date),
-    parseTime(block.booking_end_datetime, date),
+    parseTime(
+      block.booking_start_datetime || block.leave_start_time,
+      date
+    ),
+    parseTime(
+      block.booking_end_datetime || block.leave_end_time,
+      date
+    ),
   ]);
 
   console.log(
@@ -406,11 +427,10 @@ export const getAvailableTimeSlotsSithum = async ({
     }))
   );
 
-
   // 5. Find available time slots
   const allFreeSlots = [];
 
-  for (const block of scheduleBlocks) {
+  for (const block of scheduleBlocks || []) {
     const start = parseTime(block.start_time_daily, date);
     const end = parseTime(block.end_time_daily, date);
     console.log("Start:", start, "End:", end);
