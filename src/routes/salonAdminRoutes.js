@@ -49,6 +49,7 @@ import {
   updateBooking,
   deleteBooking,
   getAllBookings, getBookingsOfStylist,
+  completeBooking,
 } from '../controllers/salonAdminBookingRelatedController.js';
 
 import { requireAuth } from '../middlewares/authMiddleware.js';
@@ -185,7 +186,9 @@ router.post("/booking", requireAuth, createBooking);
 // Edit details of a booking only for that salon admin
 router.put("/booking/:bookingId", requireAuth, updateBooking);
 // Delete a booking only for that salon admin have access
-router.delete("/booking/:bookingId", requireAuth, deleteBooking);
+router.delete("/bookings/:bookingId", requireAuth, deleteBooking);
+
+router.put("/bookings/c/:bookingId", requireAuth, completeBooking);
 
 //new
 //Booking for a stylist

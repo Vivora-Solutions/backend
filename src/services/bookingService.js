@@ -1,11 +1,11 @@
 import supabase from '../config/supabaseClient.js';
 
 export const handleCreateBooking = async (
-    user_id,
-    stylist_id,
-    service_ids,
-    booking_start_datetime,
-    notes = null
+  user_id,
+  stylist_id,
+  service_ids,
+  booking_start_datetime,
+  notes = null
 ) => {
   const client = supabase;
 
@@ -25,9 +25,9 @@ export const handleCreateBooking = async (
   try {
     // 1. Fetch services and validate
     const { data: services, error: serviceErr } = await client
-        .from("service")
-        .select("service_id, salon_id, duration_minutes, price")
-        .in("service_id", service_ids);
+      .from("service")
+      .select("service_id, salon_id, duration_minutes, price")
+      .in("service_id", service_ids);
 
     if (serviceErr) throw new Error("Error fetching services: " + serviceErr.message);
     if (!services || services.length !== service_ids.length) {
@@ -45,10 +45,10 @@ export const handleCreateBooking = async (
 
     // 3. Check stylist is active
     const { data: stylist, error: stylistActiveErr } = await client
-        .from("stylist")
-        .select("is_active")
-        .eq("stylist_id", stylist_id)
-        .single();
+      .from("stylist")
+      .select("is_active")
+      .eq("stylist_id", stylist_id)
+      .single();
 
     if (stylistActiveErr) throw new Error("Error checking stylist status: " + stylistActiveErr.message);
     if (!stylist.is_active) {
@@ -69,9 +69,9 @@ export const handleCreateBooking = async (
 
     // 5. Get all workstations in salon
     const { data: allStations, error: stationErr } = await client
-        .from("workstation")
-        .select("workstation_id")
-        .eq("salon_id", salon_id);
+      .from("workstation")
+      .select("workstation_id")
+      .eq("salon_id", salon_id);
 
     if (stationErr) throw new Error("Error fetching workstations: " + stationErr.message);
     if (!allStations || allStations.length === 0) {
@@ -83,12 +83,12 @@ export const handleCreateBooking = async (
 
     // 6. Check for overlapping bookings
     const { data: busyBookings, error: busyErr } = await client
-        .from("booking")
-        .select("workstation_id")
-        .eq("salon_id", salon_id)
-        .not("workstation_id", "is", null)
-        .lt("booking_start_datetime", booking_end.toISOString())
-        .gt("booking_end_datetime", booking_start.toISOString());
+      .from("booking")
+      .select("workstation_id")
+      .eq("salon_id", salon_id)
+      .not("workstation_id", "is", null)
+      .lt("booking_start_datetime", booking_end.toISOString())
+      .gt("booking_end_datetime", booking_start.toISOString());
 
     if (busyErr) {
       console.error("❌ Error checking busy bookings", busyErr);
@@ -110,20 +110,20 @@ export const handleCreateBooking = async (
 
     // 7. Insert booking
     const { data: booking, error: bookingErr } = await client
-        .from("booking")
-        .insert([
-          {
-            user_id,
-            salon_id,
-            stylist_id,
-            workstation_id: freeStationId,
-            booking_start_datetime: booking_start.toISOString(),
-            total_duration_minutes,
-            notes,
-          },
-        ])
-        .select()
-        .single();
+      .from("booking")
+      .insert([
+        {
+          user_id,
+          salon_id,
+          stylist_id,
+          workstation_id: freeStationId,
+          booking_start_datetime: booking_start.toISOString(),
+          total_duration_minutes,
+          notes,
+        },
+      ])
+      .select()
+      .single();
 
     if (bookingErr) {
       console.error("❌ Booking insert failed:", bookingErr.message);
@@ -202,10 +202,10 @@ export const handleDeleteBooking = async (user_id, booking_id) => {
 
     // 1. Fetch the booking to validate ownership
     const { data: booking, error: fetchErr } = await client
-        .from('booking')
-        .select('user_id')
-        .eq('booking_id', booking_id)
-        .single();
+      .from('booking')
+      .select('user_id')
+      .eq('booking_id', booking_id)
+      .single();
 
     if (fetchErr) {
       throw new Error("Booking not found or could not be fetched.");
@@ -326,12 +326,12 @@ export const handleGetBookingById = async (userId, bookingId) => {
     .eq('booking_id', bookingId)
     .eq('user_id', userId)
     .single();
-    
+
   if (error) {
     if (error.code === 'PGRST116') return null;
     throw new Error(error.message);
   }
-  
+
   return data;
 };
 
@@ -394,7 +394,7 @@ export const handleCancelBooking = async (userId, bookingId) => {
     .eq('booking_id', bookingId)
     .eq('user_id', userId)
     .single();
-    
+
   if (checkError) {
     if (checkError.code === 'PGRST116') return null;
     throw new Error(checkError.message);
@@ -404,18 +404,18 @@ export const handleCancelBooking = async (userId, bookingId) => {
   const now = new Date();
   const timeDifference = startTime - now;
   const hoursUntilBooking = timeDifference / (1000 * 60 * 60);
-  
+
   if (!['pending', 'confirmed'].includes(bookingCheck.status)) {
     throw new Error('Booking cannot be cancelled');
   }
-  
+
   // if (hoursUntilBooking < 1) {
   //   throw new Error('Booking can only be cancelled at least 1 hours before the scheduled time');
   // }
-  
+
   const { data, error } = await supabase
     .from('booking')
-    .update({ 
+    .update({
       status: 'cancelled'
     })
     .eq('booking_id', bookingId)
@@ -440,10 +440,11 @@ export const handleCancelBooking = async (userId, bookingId) => {
       )
     `)
     .single();
-    
+
   if (error) throw new Error(error.message);
   return data;
 };
+
 
 // export const handleRescheduleBooking = async (userId, bookingId, newStartDateTime, newEndDateTime) => {
 //   // Validate new booking times
@@ -523,8 +524,8 @@ export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
 
   const { data, error, count } = await supabase
-      .from('booking')
-      .select(`
+    .from('booking')
+    .select(`
       booking_id,
       salon_id,
       stylist_id,
@@ -552,10 +553,10 @@ export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
         updated_at
       )
     `, { count: 'exact' })
-      .eq('user_id', userId)
-      .in('status', ['completed', 'cancelled', 'no_show'])
-      .order('booking_start_datetime', { ascending: false })
-      .range(offset, offset + limit - 1);
+    .eq('user_id', userId)
+    .in('status', ['completed', 'cancelled', 'no_show'])
+    .order('booking_start_datetime', { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (error) throw new Error(error.message);
 
@@ -577,11 +578,11 @@ export const getStylistsForAllServices = async (salonId, serviceIds) => {
   }
 
   const { data, error } = await supabase
-      .from('stylist_service')
-      .select('stylist_id')
-      .eq('salon_id', salonId)
-      .in('service_id', serviceIds)
-      .eq('can_be', true);
+    .from('stylist_service')
+    .select('stylist_id')
+    .eq('salon_id', salonId)
+    .in('service_id', serviceIds)
+    .eq('can_be', true);
 
   if (error) throw new Error(error.message);
 
@@ -591,17 +592,17 @@ export const getStylistsForAllServices = async (salonId, serviceIds) => {
   });
 
   const eligibleStylistIds = Object.entries(stylistCountMap)
-      .filter(([_, count]) => count === serviceIds.length)
-      .map(([id]) => id);
+    .filter(([_, count]) => count === serviceIds.length)
+    .map(([id]) => id);
 
   if (eligibleStylistIds.length === 0) return [];
 
   const { data: stylistDetails, error: stylistError } = await supabase
-      .from('stylist')
-      .select('stylist_id, stylist_name, profile_pic_link')
-      .in('stylist_id', eligibleStylistIds)
-      .eq('salon_id', salonId)
-      .eq('is_active', true);
+    .from('stylist')
+    .select('stylist_id, stylist_name, profile_pic_link')
+    .in('stylist_id', eligibleStylistIds)
+    .eq('salon_id', salonId)
+    .eq('is_active', true);
 
 
   if (stylistError) throw new Error(stylistError.message);

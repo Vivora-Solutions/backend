@@ -217,7 +217,9 @@ export const handleCreateBooking = async (
   non_online_customer_mobile_number,
   service_ids,
   booking_start_datetime,
-  notes = null
+  notes = null,
+  stylist_id,
+  booked_mode
 ) => {
   try {
     // 0. Insert non-online customer and get ID
@@ -266,27 +268,27 @@ export const handleCreateBooking = async (
     const salon_id = salonIds[0];
 
     // 2. Validate stylist
-    const { data: stylistMap, error: stylistErr } = await supabase
-      .from("stylist_service")
-      .select("stylist_id")
-      .in("service_id", service_ids)
-      .eq("salon_id", salon_id);
+    // const { data: stylistMap, error: stylistErr } = await supabase
+    //   .from("stylist_service")
+    //   .select("stylist_id")
+    //   .in("service_id", service_ids)
+    //   .eq("salon_id", salon_id);
 
-    if (stylistErr)
-      throw new Error(
-        "Error fetching stylist-service mapping: " + stylistErr.message
-      );
+    // if (stylistErr)
+    //   throw new Error(
+    //     "Error fetching stylist-service mapping: " + stylistErr.message
+    //   );
 
-    const stylistCounter = {};
-    stylistMap.forEach((s) => {
-      stylistCounter[s.stylist_id] = (stylistCounter[s.stylist_id] || 0) + 1;
-    });
+    // const stylistCounter = {};
+    // stylistMap.forEach((s) => {
+    //   stylistCounter[s.stylist_id] = (stylistCounter[s.stylist_id] || 0) + 1;
+    // });
 
-    const stylist_id = Object.entries(stylistCounter).find(
-      ([_, count]) => count === service_ids.length
-    )?.[0];
-    if (!stylist_id)
-      throw new Error("Selected services must be handled by the same stylist.");
+    // const stylist_id = Object.entries(stylistCounter).find(
+    //   ([_, count]) => count === service_ids.length
+    // )?.[0];
+    // if (!stylist_id)
+    //   throw new Error("Selected services must be handled by the same stylist.");
 
     // 3. Check stylist is active
     const { data: stylist, error: stylistActiveErr } = await supabase
@@ -326,6 +328,7 @@ export const handleCreateBooking = async (
       .from("booking")
       .select("workstation_id")
       .eq("salon_id", salon_id)
+      .neq("status", "cancelled")
       .not("workstation_id", "is", null)
       .lt("booking_start_datetime", booking_end.toISOString())
       .gt("booking_end_datetime", booking_start.toISOString());
@@ -352,6 +355,7 @@ export const handleCreateBooking = async (
           booking_start_datetime: booking_start.toISOString(),
           total_duration_minutes,
           notes,
+          booked_mode,
           non_online_customer_id, // 👈 Added this field
         },
       ])
@@ -530,6 +534,123 @@ export const handleDeleteBooking = async (user_id, booking_id) => {
   if (deleteError) throw new Error(deleteError.message);
 
   return { message: "Booking deleted successfully" };
+};
+
+export const handleCancelBookingNonOnline = async (userId, bookingId) => {
+  // Check if booking can be cancelled ( must be pending or confirmed, and at least 2 hours before start time)
+  const { data: bookingCheck, error: checkError } = await supabase
+    .from('booking')
+    .select('booking_start_datetime, status')
+    .eq('booking_id', bookingId)
+    // .eq('user_id', userId)
+    .single();
+
+  if (checkError) {
+    if (checkError.code === 'PGRST116') return null;
+    throw new Error(checkError.message);
+  }
+
+  const startTime = new Date(bookingCheck.booking_start_datetime);
+  const now = new Date();
+  const timeDifference = startTime - now;
+  const hoursUntilBooking = timeDifference / (1000 * 60 * 60);
+
+  if (!['pending', 'confirmed'].includes(bookingCheck.status)) {
+    throw new Error('Booking cannot be cancelled');
+  }
+
+  // if (hoursUntilBooking < 1) {
+  //   throw new Error('Booking can only be cancelled at least 1 hours before the scheduled time');
+  // }
+
+  const { data, error } = await supabase
+    .from('booking')
+    .update({
+      status: 'cancelled'
+    })
+    .eq('booking_id', bookingId);
+  // .eq('user_id', userId);
+  // .select(`
+  //   booking_id,
+  //   salon_id,
+  //   stylist_id,
+  //   booking_start_datetime,
+  //   booking_end_datetime,
+  //   total_duration_minutes,
+  //   total_price,
+  //   status,
+  //   booked_at,
+  //   booked_mode,
+  //   notes,
+  //   salon (
+  //     salon_name
+  //   ),
+  //   stylist (
+  //     stylist_name
+  //   )
+  // `)
+  // .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+};
+
+export const handleCompleteBooking = async (userId, bookingId) => {
+  // Check if booking can be completed ( must be pending or confirmed, and at least 2 hours before start time)
+  const { data: bookingCheck, error: checkError } = await supabase
+    .from('booking')
+    .select('booking_start_datetime, status')
+    .eq('booking_id', bookingId)
+    // .eq('user_id', userId)
+    .single();
+  if (checkError) {
+    if (checkError.code === 'PGRST116') return null;
+    throw new Error(checkError.message);
+  }
+
+  const startTime = new Date(bookingCheck.booking_start_datetime);
+  const now = new Date();
+  const timeDifference = startTime - now;
+  const hoursUntilBooking = timeDifference / (1000 * 60 * 60);
+
+  if (!['pending', 'confirmed'].includes(bookingCheck.status)) {
+    throw new Error('Booking cannot be completed');
+  }
+
+  // if (hoursUntilBooking < 1) {
+  //   throw new Error('Booking can only be cancelled at least 1 hours before the scheduled time');
+  // }
+
+  const { data, error } = await supabase
+    .from('booking')
+    .update({
+      status: 'completed'
+    })
+    .eq('booking_id', bookingId);
+  // .eq('user_id', userId)
+  // .select(`
+  //   booking_id,
+  //   salon_id,
+  //   stylist_id,
+  //   booking_start_datetime,
+  //   booking_end_datetime,
+  //   total_duration_minutes,
+  //   total_price,
+  //   status,
+  //   booked_at,
+  //   booked_mode,
+  //   notes,
+  //   salon (
+  //     salon_name
+  //   ),
+  //   stylist (
+  //     stylist_name
+  //   )
+  // `)
+  // .single();
+
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getSalonIdByAdmin = async (user_id) => {
