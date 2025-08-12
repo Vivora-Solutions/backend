@@ -8,6 +8,7 @@ import {
   cancelBooking,
   //rescheduleBooking,
   getBookingHistory, fetchStylistsBySalonAndServices,
+  completeBooking,
 } from "../controllers/bookingController.js";
 
 const router = express.Router();
@@ -16,7 +17,7 @@ const router = express.Router();
 // Booking management routes
 
 // Create a booking by a user
-router.post('/', requireAuth,  createBooking);                                              // POST {{base_url}}/api/booking
+router.post('/', requireAuth, createBooking);                                              // POST {{base_url}}/api/booking
 // Get all ongoing bookings of a user in the status of pending and confirmed
 router.get('/', requireAuth, getUserBookings);                                             // GET {{base_url}}/api/booking (ongoing bookings)
 // GET all bookings of a user without pending and confirmed ones                                
@@ -27,6 +28,9 @@ router.get('/:bookingId', requireAuth, getBookingById);                         
 //router.put('/:bookingId', requireAuth, updateBooking);             // PUT {{base_url}}/api/booking/:bookingId
 // cancel a booking by a user
 router.put('/:bookingId', requireAuth, cancelBooking);      // PUT {{base_url}}/api/booking/:bookingId/cancel
+
+router.put('/c/:bookingId', requireAuth, completeBooking);      // PUT {{base_url}}/api/booking/:bookingId/complete
+
 // reschedule a booking by a user
 //router.put('/:bookingId/reschedule', requireAuth, rescheduleBooking); // PUT {{base_url}}/api/booking/:bookingId/reschedule
 

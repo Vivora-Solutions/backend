@@ -18,7 +18,7 @@ const app = express();
 //  Proper CORS setup to allow cookies
  const corsOptions = {
     origin: 'http://localhost:5173',
- // origin: 'https://web4-ivory-psi.vercel.app',
+ //origin: 'https://web4-ivory-psi.vercel.app',
   credentials: true,
 };
 

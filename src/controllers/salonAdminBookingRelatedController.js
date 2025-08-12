@@ -67,6 +67,8 @@ import {
   handleDeleteBooking,
   handleGetAllBookings,
   handleGetBookingsOfStylist,
+  handleCancelBookingNonOnline,
+  handleCompleteBooking,
 } from "../services/salonAdminBookingRelatedService.js";
 
 export const createBooking = async (req, res) => {
@@ -77,26 +79,30 @@ export const createBooking = async (req, res) => {
       service_ids,
       booking_start_datetime,
       notes,
+      stylist_id,
+      booked_mode,
     } = req.body;
 
     if (!Array.isArray(service_ids) || service_ids.length === 0) {
       return res
-          .status(400)
-          .json({ error: "At least one service must be selected." });
+        .status(400)
+        .json({ error: "At least one service must be selected." });
     }
 
     if (!booking_start_datetime) {
       return res
-          .status(400)
-          .json({ error: "Booking start datetime is required." });
+        .status(400)
+        .json({ error: "Booking start datetime is required." });
     }
 
     const result = await handleCreateBooking(
-        non_online_customer_name,
-        non_online_customer_mobile_number,
-        service_ids,
-        booking_start_datetime,
-        notes
+      non_online_customer_name,
+      non_online_customer_mobile_number,
+      service_ids,
+      booking_start_datetime,
+      notes,
+      stylist_id,
+      booked_mode
     );
     res.status(201).json(result);
   } catch (err) {
@@ -127,7 +133,7 @@ export const getBookingsOfStylist = async (req, res) => {
       return res.status(400).json({ error: "Stylist ID is required" });
     }
 
-    const result = await handleGetBookingsOfStylist(user_id,stylist_id);
+    const result = await handleGetBookingsOfStylist(user_id, stylist_id);
     res.status(200).json(result);
   } catch (err) {
     console.error("Error fetching bookings for stylist:", err);
@@ -161,9 +167,27 @@ export const deleteBooking = async (req, res) => {
       return res.status(400).json({ error: "Missing user or booking ID" });
     }
 
-    const result = await handleDeleteBooking(user_id, bookingId);
+    const result = await handleCancelBookingNonOnline(user_id, bookingId);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+export const completeBooking = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    const { bookingId } = req.params;
+
+    if (!user_id || !bookingId) {
+      return res.status(400).json({ error: "Missing user or booking ID" });
+    }
+
+    const result = await handleCompleteBooking(user_id, bookingId);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
