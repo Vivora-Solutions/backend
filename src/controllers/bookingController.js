@@ -14,6 +14,7 @@ export const createBooking = async (req, res) => {
     const user_id = req.userId;
     console.log(user_id);
     const { stylist_id, service_ids, booking_start_datetime, notes } = req.body;
+    console.log("Hi", booking_start_datetime);
 
     if (!user_id || !service_ids || !booking_start_datetime || !stylist_id) {
       return res.status(400).json({ error: 'Missing required fields' });

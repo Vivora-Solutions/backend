@@ -16,6 +16,12 @@ export const fetchAllSalon = async () => {
       average_rating,
       banner_images (
         image_link
+      ),
+      salon_opening_hours(
+        day_of_week,
+        is_open,
+        opening_time,
+        closing_time
       )
     `)
     .eq("is_approved", true);
@@ -398,6 +404,7 @@ export const getAvailableTimeSlotsSithum = async ({
 
   if (scheduleError) throw new Error(scheduleError.message);
   console.log("Schedule blocks:", scheduleBlocks?.length || 0);
+  console.log(scheduleBlocks);
 
   // 3. Get leave blocks (only for the specific date)
   const { data: breakBlocks, error: breakError } = await supabase
@@ -429,7 +436,7 @@ export const getAvailableTimeSlotsSithum = async ({
     return start < dateEnd && end > dateStart;
   });
 
-  console.log("Filtered booked blocks:", filteredBookedBlocks.length);
+  //console.log("Filtered booked blocks:", filteredBookedBlocks.length);
 
   // 3.8 combine booked and blocked
   const combinedBlocks = [...filteredBookedBlocks, ...(breakBlocks || [])];
@@ -446,13 +453,13 @@ export const getAvailableTimeSlotsSithum = async ({
     ),
   ]);
 
-  console.log(
-    "Busy times:",
-    busyTimes.map(([s, e]) => ({
-      start: s.toISOString(),
-      end: e.toISOString(),
-    }))
-  );
+  // console.log(
+  //   "Busy times:",
+  //   busyTimes.map(([s, e]) => ({
+  //     start: s.toISOString(),
+  //     end: e.toISOString(),
+  //   }))
+  //);
 
   // 5. Find available time slots - OPTIMIZED VERSION
   const allFreeSlots = [];
@@ -503,6 +510,7 @@ export const getAvailableTimeSlotsSithum = async ({
     allFreeSlots.push(...availableSlots);
   }
   console.log("Available slots:", allFreeSlots.length);
+  console.log(allFreeSlots);
 
   return allFreeSlots;
 };
