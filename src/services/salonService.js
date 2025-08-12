@@ -3,8 +3,8 @@ import supabase from "../config/supabaseClient.js";
 
 export const fetchAllSalon = async () => {
   const { data, error } = await supabase
-      .from("salon")
-      .select(`
+    .from("salon")
+    .select(`
       salon_id,
       salon_name,
       location,
@@ -18,7 +18,7 @@ export const fetchAllSalon = async () => {
         image_link
       )
     `)
-      .eq("is_approved", true);
+    .eq("is_approved", true);
 
   if (error) throw new Error(error.message);
 
@@ -177,9 +177,9 @@ export const fetchServiceById = async (serviceId) => {
   }
 
   const { data, error } = await supabase
-      .from("service")
-      .select(
-          `
+    .from("service")
+    .select(
+      `
       service_name,
       price,
       duration_minutes,
@@ -190,9 +190,9 @@ export const fetchServiceById = async (serviceId) => {
         location
       )
     `
-      )
-      .eq("service_id", serviceId)
-      .single(); // since service_id is unique
+    )
+    .eq("service_id", serviceId)
+    .single(); // since service_id is unique
 
   if (error) {
     console.error("Supabase error:", error.message);
@@ -210,13 +210,13 @@ export const fetchServiceById = async (serviceId) => {
 
 
 
-export const getAllServicesBySalonId  = async (salonId) => {
+export const getAllServicesBySalonId = async (salonId) => {
   const { data, error } = await supabase
-      .from("service")
-      .select("*")
-      .eq("salon_id", salonId)
-      .eq("is_available", true)
-      .order("created_at", { ascending: false });
+    .from("service")
+    .select("*")
+    .eq("salon_id", salonId)
+    .eq("is_available", true)
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(error.message);
@@ -243,12 +243,12 @@ const subtractTimeRanges = (baseRange, busyRanges) => {
   let [start, end] = baseRange;
 
   busyRanges
-      .filter(([bStart, bEnd]) => bStart < end && bEnd > start)
-      .sort((a, b) => a[0] - b[0])
-      .forEach(([bStart, bEnd]) => {
-        if (bStart > start) free.push([start, new Date(bStart)]);
-        start = bEnd > start ? new Date(bEnd) : start;
-      });
+    .filter(([bStart, bEnd]) => bStart < end && bEnd > start)
+    .sort((a, b) => a[0] - b[0])
+    .forEach(([bStart, bEnd]) => {
+      if (bStart > start) free.push([start, new Date(bStart)]);
+      start = bEnd > start ? new Date(bEnd) : start;
+    });
 
   if (start < end) free.push([start, end]);
   return free;
@@ -272,22 +272,49 @@ const splitIntoSlots = (freeRanges, durationMinutes) => {
   return slots;
 };
 
+const splitIntoSlotsSithum = (freeRanges, durationMinutes) => {
+  const slots = [];
+  const durationMs = durationMinutes * 60 * 1000;
+  const stepMs = 15 * 60 * 1000; // 15-min step
+
+  for (const [start, end] of freeRanges) {
+    const startTime = start.getTime();
+    const endTime = end.getTime();
+    const availableDuration = endTime - startTime;
+
+    // Skip this range if it's too small for the service
+    if (availableDuration < durationMs) continue;
+
+    // Pre-calculate how many slots we can fit
+    const numSlots = Math.floor((availableDuration - durationMs) / stepMs) + 1;
+
+    // Pre-allocate slots in one go
+    for (let i = 0; i < numSlots; i++) {
+      const slotStart = new Date(startTime + (i * stepMs));
+      const slotEnd = new Date(slotStart.getTime() + durationMs);
+      slots.push({ start: slotStart, end: slotEnd });
+    }
+  }
+
+  return slots;
+};
+
 const isWorkstationAvailable = async (salonId, start, end) => {
   const { data: workstations, error: wsError } = await supabase
-      .from("workstation")
-      .select("workstation_id")
-      .eq("salon_id", salonId);
+    .from("workstation")
+    .select("workstation_id")
+    .eq("salon_id", salonId);
 
   if (wsError) throw new Error(wsError.message);
 
   for (const ws of workstations) {
     const { data: bookings, error: bookingErr } = await supabase
-        .from("booking")
-        .select("booking_id")
-        .eq("workstation_id", ws.workstation_id)
-        .or("status.eq.confirmed,status.eq.pending")
-        .lt("booking_start_datetime", end.toISOString())
-        .gt("booking_end_datetime", start.toISOString());
+      .from("booking")
+      .select("booking_id")
+      .eq("workstation_id", ws.workstation_id)
+      .or("status.eq.confirmed,status.eq.pending")
+      .lt("booking_start_datetime", end.toISOString())
+      .gt("booking_end_datetime", start.toISOString());
 
     if (bookingErr) throw new Error(bookingErr.message);
     if (bookings.length === 0) return true; // at least one is free
@@ -359,7 +386,7 @@ export const getAvailableTimeSlotsSithum = async ({
   if (hasFullDayLeave) {
     throw new Error("Stylist is on leave for the entire day on the selected date");
   }
-  
+
   // Partial day leaves will be handled later in the busy times calculation
 
   // 2. Get working schedule directly from new table
@@ -391,7 +418,7 @@ export const getAvailableTimeSlotsSithum = async ({
 
   if (bookedError) throw new Error(bookedError.message);
   console.log("Booked blocks:", bookedBlocks?.length || 0);
-  
+
   //3.7 filter the books for the date
   const dateStart = new Date(`${date}T00:00:00Z`);
   const dateEnd = new Date(`${date}T23:59:59Z`);
@@ -406,7 +433,7 @@ export const getAvailableTimeSlotsSithum = async ({
 
   // 3.8 combine booked and blocked
   const combinedBlocks = [...filteredBookedBlocks, ...(breakBlocks || [])];
-  
+
   // 4. Convert leave times to busy times
   const busyTimes = (combinedBlocks || []).map((block) => [
     parseTime(
@@ -427,38 +454,58 @@ export const getAvailableTimeSlotsSithum = async ({
     }))
   );
 
-  // 5. Find available time slots
+  // 5. Find available time slots - OPTIMIZED VERSION
   const allFreeSlots = [];
 
   for (const block of scheduleBlocks || []) {
     const start = parseTime(block.start_time_daily, date);
     const end = parseTime(block.end_time_daily, date);
-    console.log("Start:", start, "End:", end);
 
     const freeBlocks = subtractTimeRanges([start, end], busyTimes);
-    const possibleSlots = splitIntoSlots(freeBlocks, totalDuration);
 
-    for (const slot of possibleSlots) {
-      const available = await isWorkstationAvailable(
-        salon_id,
-        slot.start,
-        slot.end
-      );
-      if (available) {
-        allFreeSlots.push(slot);
+    // Pre-filter blocks that are too short
+    const validFreeBlocks = freeBlocks.filter(
+      ([blockStart, blockEnd]) =>
+        (blockEnd.getTime() - blockStart.getTime()) >= totalDuration * 60 * 1000
+    );
+
+    // Generate all possible slots first
+    const allPossibleSlots = [];
+    for (const [blockStart, blockEnd] of validFreeBlocks) {
+      const startTime = blockStart.getTime();
+      const endTime = blockEnd.getTime();
+      const durationMs = totalDuration * 60 * 1000;
+      const stepMs = 15 * 60 * 1000;
+
+      // Calculate how many slots fit in this block
+      const numSlots = Math.floor((endTime - startTime - durationMs) / stepMs) + 1;
+
+      for (let i = 0; i < numSlots; i++) {
+        const slotStart = new Date(startTime + (i * stepMs));
+        const slotEnd = new Date(slotStart.getTime() + durationMs);
+        allPossibleSlots.push({ start: slotStart, end: slotEnd });
       }
     }
 
-    console.log(
-      "Available slots for schedule_id:",
-      block.schedule_id,
-      allFreeSlots.length
+    // Batch check workstation availability
+    const availabilityChecks = allPossibleSlots.map(slot =>
+      isWorkstationAvailable(salon_id, slot.start, slot.end)
     );
+
+    // Wait for all checks to complete
+    const availabilityResults = await Promise.all(availabilityChecks);
+
+    // Filter available slots
+    const availableSlots = allPossibleSlots.filter(
+      (_, index) => availabilityResults[index]
+    );
+
+    allFreeSlots.push(...availableSlots);
   }
+  console.log("Available slots:", allFreeSlots.length);
 
   return allFreeSlots;
 };
-
 
 
 // export const getAvailableTimeSlotss = async ({

@@ -6,14 +6,14 @@ import {
   handleCancelBooking,
   //handleRescheduleBooking,
   handleGetBookingHistory,
-  getStylistsForAllServices,
+  getStylistsForAllServices
 } from '../services/bookingService.js'
 
 export const createBooking = async (req, res) => {
   try {
     const user_id = req.userId;
     console.log(user_id);
-    const { stylist_id , service_ids, booking_start_datetime, notes } = req.body;
+    const { stylist_id, service_ids, booking_start_datetime, notes } = req.body;
 
     if (!user_id || !service_ids || !booking_start_datetime || !stylist_id) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -51,13 +51,13 @@ export const getBookingById = async (req, res) => {
   try {
     const user_id = req.userId;
     const { bookingId } = req.params;
-    
+
     if (!user_id) return res.status(400).json({ error: 'User ID not found for this user' });
     if (!bookingId) return res.status(400).json({ error: 'Booking ID is required' });
-    
+
     const result = await handleGetBookingById(user_id, bookingId);
     if (!result) return res.status(404).json({ error: 'Booking not found' });
-    
+
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -84,8 +84,35 @@ export const cancelBooking = async (req, res) => {
   } catch (err) {
     // Business rule messages
     if (
-        err.message.includes('Booking cannot be cancelled') ||
-        err.message.includes('at least 1 hours before')
+      err.message.includes('Booking cannot be cancelled') ||
+      err.message.includes('at least 1 hours before')
+    ) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    res.status(500).json({ error: 'Internal server error: ' + err.message });
+  }
+};
+
+export const completeBooking = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    const { bookingId } = req.params;
+    if (!user_id) return res.status(400).json({ error: 'User ID not found for this user' });
+    if (!bookingId) return res.status(400).json({ error: 'Booking ID is required' });
+
+    const result = await handleCompleteBooking(user_id, bookingId);
+
+    if (!result) {
+      return res.status(404).json({ error: 'Booking not found or cannot be completed' });
+    }
+
+    res.status(200).json({ message: 'Booking completed successfully', data: result });
+  } catch (err) {
+    // Business rule messages
+    if (
+      err.message.includes('Booking cannot be completed') ||
+      err.message.includes('at least 1 hours before')
     ) {
       return res.status(400).json({ error: err.message });
     }
@@ -114,9 +141,9 @@ export const getBookingHistory = async (req, res) => {
   try {
     const user_id = req.userId;
     const { page = 1, limit = 10 } = req.query;
-    
+
     if (!user_id) return res.status(400).json({ error: 'User ID not found for this user' });
-    
+
     const result = await handleGetBookingHistory(user_id, parseInt(page), parseInt(limit));
     res.status(200).json(result);
   } catch (err) {
