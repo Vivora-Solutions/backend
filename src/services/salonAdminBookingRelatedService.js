@@ -400,9 +400,9 @@ export const handleCreateBooking = async (
 };
 
 export const handleGetAllBookings = async (user_id) => {
-  console.log("Fetching all bookings for salon admin...");
+  //console.log("Fetching all bookings for salon admin...");
   const salon_id = await getSalonIdByAdmin(user_id);
-  console.log("Salon ID: ", salon_id);
+  //console.log("Salon ID: ", salon_id);
 
   const { data, error } = await supabase
     .from("booking")
@@ -448,7 +448,7 @@ export const handleGetAllBookings = async (user_id) => {
     .neq("status", "cancelled")
     .gte("booking_start_datetime", new Date().toISOString())
     .order("booking_start_datetime", { ascending: true });
-  console.log("Bookings Data:", data);
+  //console.log("Bookings Data:", data);
   if (error) throw new Error(error.message);
 
   // Fetch user details for bookings with user_id
@@ -470,7 +470,7 @@ export const handleGetAllBookings = async (user_id) => {
     }
   }
 
-  console.log("Final Data:", data);
+  //console.log("Final Data:", data);
   return data;
 };
 

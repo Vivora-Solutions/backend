@@ -88,6 +88,7 @@ export const createBooking = async (req, res) => {
         .status(400)
         .json({ error: "At least one service must be selected." });
     }
+    console.log(service_ids);
 
     if (!booking_start_datetime) {
       return res
@@ -112,9 +113,9 @@ export const createBooking = async (req, res) => {
 };
 
 export const getAllBookings = async (req, res) => {
-  console.log("Fetching all bookings...");
+  //console.log("Fetching all bookings...");
   try {
-    console.log("Fetching all bookings for user ID:", req.userId);
+    //console.log("Fetching all bookings for user ID:", req.userId);
     const user_id = req.userId;
     if (!user_id) return res.status(400).json({ error: "User ID not found" });
 

@@ -462,20 +462,6 @@ export const deleteBookingService = async (bookingId) => {
     return true;
 };
 
-// Customer Services
-// export const fetchAllCustomers = async () => {
-//     const { data, error } = await supabase
-//         .from('customer')
-//         .select(`
-//             *,
-//             user(user_id, email)
-//         `)
-//         .order('created_at', { ascending: false });
-    
-//     if (error) throw new Error(error.message);
-//     return data;
-// };
-
 export const fetchAllCustomers = async () => {
   const { data, error } = await supabase.rpc('get_daily_customer_counts');
   if (error) throw new Error(error.message);
