@@ -9,74 +9,35 @@ import {
     getAllUnapprovedSalons,
     getUnapprovedSalonsByName,
     getSalonBookings,
+
     // Users
     getAllusers,
     getUserById,
     updateUser,
-    // deleteUser,
+
 
     // Salons
     getAllSalons,
     getSalonById,
-    createSalon,
     getSalonsPerDay,
     updateSalon,
     updateSalonStatus,
-    deleteSalon,
-    approveSalon,
 
-    // Stylists
-    getAllStylists,
-    getStylistById,
-    getStylistsBySalon,
-    createStylist,
-    updateStylist,
-    deleteStylist,
-
-    // Services
-    getAllServices,
-    getServiceById,
-    getServicesBySalon,
-    createService,
-    updateService,
-    deleteService,
-
-    // Bookings
-    getAllBookings,
-    getBookingById,
-    getBookingsByUser,
-    getBookingsBySalon,
-    getBookingsByStylist,
-    updateBookingStatus,
-    deleteBooking,
 
     // Customers
     getAllCustomers,
-    getCustomerById,
-    updateCustomer,
-    deleteCustomer,
-
-    // Stylist Work Schedules
-    getAllWorkSchedules,
-    getWorkScheduleById,
-    getWorkSchedulesByStylist,
-    createWorkSchedule,
-    updateWorkSchedule,
-    deleteWorkSchedule,
-
-    // Booking Services
     getAllBookingServices,
-    // getBookingServicesByBooking,
     getBookingServicesBySalonId,
-    updateBookingService,
-    deleteBookingServiceController,
 } from '../controllers/superAdminController.js';
 
 const router = express.Router();
 
 
+router.use(requireAuth);
+router.use(requireSupperAdmin);
 
-router.get('/customer-count', getCustomerCount);    //works
+
+router.get('/customer-count',  getCustomerCount);    //works
 router.get('/salon-count', getSalonCount);          //works
 router.get('/booking-count', getBookingCount);
 
@@ -105,8 +66,4 @@ router.get('/booking/:salon_id', getSalonBookings);
 router.get('/bookings/:salonId/services', getBookingServicesBySalonId);         // return start datetime, end datetime and booked at tieme of each salon
 
 
-
-
-
-//others also works, but no need that mutch of things for supper admins .
 export default router;

@@ -37,7 +37,7 @@ export const requireAuth = async (req, res, next) => {
     //.userRole = userRow.role;  // Attach role to request for next middlewares
     req.userId = userRow.user_id; // Attach user_id to request for next middlewares
     //console.log(req.userRole);
-    //onsole.log(req.userId);
+    //console.log(req.userId);
     next();
   } catch (err) {
     return res.status(500).json({ error: 'Internal auth error: ' + err.message });
