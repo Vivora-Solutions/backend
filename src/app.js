@@ -17,8 +17,8 @@ const app = express();
 
 //  Proper CORS setup to allow cookies
  const corsOptions = {
-    //origin: 'http://localhost:5173',
-    origin: 'https://web5-swart.vercel.app',
+    origin: 'http://localhost:5173',
+    //origin: 'https://web5-swart.vercel.app',
   credentials: true,
 };
 

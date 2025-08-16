@@ -73,7 +73,6 @@ router.get('/my', requireAuth, getSalonDetailsController);
 
 // 2.Banner Image management
 
-// Add banner image
 
 
 // Get banner images
@@ -95,27 +94,12 @@ router.get("/stylist/:stylist_id", requireAuth, getStylist);
 router.get("/stylists", requireAuth, getAllStylists);
 // Add stylist
 router.post('/stylist', requireAuth, addStylist);
-
 // Activate stylist
 router.put('/stylist/activate/:stylist_id', requireAuth, activateStylist);
 // Disable stylist
 router.put('/stylist/disable/:stylist_id', requireAuth, disableStylist);
 // Update stylist details
 router.put('/stylist/:stylist_id', requireAuth, updateStylist);
-
-// // Update stylist name
-// router.put('/stylist/:stylist_id/name', requireAuth, updateStylistName);
-// // Update stylist contact number
-// router.put('/stylist/:stylist_id/contact', requireAuth, updateStylistContact);
-// // Update profile picture
-// router.put('/stylist/:stylist_id/profile-picture', requireAuth, updateStylistProfilePic);
-// // Delete profile picture
-// router.delete('/stylist/:stylist_id/profile-picture', requireAuth, deleteStylistProfilePic);
-// // Update bio
-// router.put('/stylist/:stylist_id/bio', requireAuth, updateStylistBio);
-// // Delete bio
-// router.delete('/stylist/:stylist_id/bio', requireAuth, deleteStylistBio);
-
 // Add service to a stylist
 router.post('/stylist/services', requireAuth, addServicesToStylist);
 // Remove service from stylist
@@ -133,30 +117,12 @@ router.get('/stylist/:stylist_id/services', requireAuth, getServicesOfStylist);
 router.get('/services', requireAuth, getAllServices);
 // Add new service to the salon
 router.post('/services', requireAuth, addService);
-// Disable a specific service by ID
-//router.put('/service/:serviceId',  requireAuth, deleteService);
-// Update price of a specific service
-// router.put('/services/:serviceId/price', requireAuth, updateServicePrice);
-// // Update duration of a specific service
-// router.put('/services/:serviceId/duration', requireAuth, updateServiceDuration);
+//Update Service
 router.put('/services/:serviceId', requireAuth, updateService);
 
 
 
 // 4. Schedule management
-
-// Get all stylists in the salon (Only accessible by salon admin)
-// router.get('/schedule', requireAuth, getAllStylistsForSalon);
-// // Toggle stylist active status (Only accessible by salon admin)
-// router.put('/schedule/status/:stylistId', requireAuth, toggleStylistActiveStatus);
-// // Add work schedule for a stylist (POST)
-// router.post('/schedule', requireAuth, addStylistSchedule);
-// // Update work schedule for a stylist (PUT)
-// router.put('/schedule/:scheduleId', requireAuth, updateStylistSchedule);
-//
-
-
-//new
 
 // Get one stylist schedule
 router.get("/schedule/stylists/:stylistId", requireAuth, getStylistsWithSchedule);
@@ -180,8 +146,13 @@ router.get("/schedule/stylists/:stylistId/leaves", requireAuth, getAllLeavesForS
 router.get("/schedule/leaves", requireAuth, getAllLeavesForSalon);
 
 
+
+
 // 5. Booking management
+
+
 router.get("/booking", requireAuth, getAllBookings);
+// Create non-online customer booking
 router.post("/booking", requireAuth, createBooking);
 // Edit details of a booking only for that salon admin
 router.put("/booking/:bookingId", requireAuth, updateBooking);
@@ -189,10 +160,11 @@ router.put("/booking/:bookingId", requireAuth, updateBooking);
 router.delete("/bookings/:bookingId", requireAuth, deleteBooking);
 
 router.put("/bookings/c/:bookingId", requireAuth, completeBooking);
-
-//new
 //Booking for a stylist
 router.get("/booking/stylist/:stylistId", requireAuth, getBookingsOfStylist);
+
+
+
 
 
 
@@ -200,6 +172,9 @@ router.get("/booking/stylist/:stylistId", requireAuth, getBookingsOfStylist);
 
 router.get('/opening-hours', requireAuth, getOpeningHoursForSalon);
 router.post('/opening-hours', requireAuth, updateOpeningHoursForWeek)
+
+
+
 
 
 // 7. Working station management
