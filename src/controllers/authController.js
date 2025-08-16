@@ -69,7 +69,8 @@ export const registerSalonController = async (req, res) => {
   }
 };
 
-export const loginUser = async (req, res) => {
+export const
+    loginUser = async (req, res) => {
   try {
     const sessionData = await handleUserLogin(req.body);
 
