@@ -492,6 +492,9 @@ export const fetchCustomerById = async (customerId) => {
     return data;
 };
 
+
+
+
 export const updateCustomerService = async (customerId, updateData) => {
     const { data, error } = await supabase
         .from('customer')
@@ -690,4 +693,11 @@ export const getTotalBookingCount = async () => {
     }
 
     return count;
+};
+
+
+export const getBookingsPerDayServices = async () => {
+  const { data, error } = await supabase.rpc("get_daily_booking_counts");
+  if (error) throw new Error(error.message);
+  return data;
 };
