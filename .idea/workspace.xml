@@ -5,7 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1ff46fa7-34e4-4e56-8f14-b9fdccc44622" name="Changes" comment="add import">
-      <change beforePath="$PROJECT_DIR$/src/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/app.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/middlewares/requireSalonAdmin.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/salonAdminBookingRelatedController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/salonAdminBookingRelatedController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/salonAdminscheduleRelatedController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/salonAdminscheduleRelatedController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/middlewares/authMiddleware.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/middlewares/authMiddleware.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/middlewares/roleAuthMidddleware.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/middlewares/roleAuthMidddleware.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/salonAdminRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/salonAdminRoutes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/superAdminRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/superAdminRoutes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/salonAdminBookingRelatedService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminBookingRelatedService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/salonAdminScheduleRelatedService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminScheduleRelatedService.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,7 +39,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "sahan",
+    "git-widget-placeholder": "feature/update",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -71,7 +80,11 @@
       <workItem from="1754770296941" duration="2437000" />
       <workItem from="1754774010205" duration="993000" />
       <workItem from="1754802296747" duration="13986000" />
-      <workItem from="1754988440222" duration="3504000" />
+      <workItem from="1754988440222" duration="7080000" />
+      <workItem from="1755019251248" duration="775000" />
+      <workItem from="1755163783030" duration="2409000" />
+      <workItem from="1755241389544" duration="607000" />
+      <workItem from="1755353271936" duration="7792000" />
     </task>
     <task id="LOCAL-00001">
       <option name="closed" value="true" />

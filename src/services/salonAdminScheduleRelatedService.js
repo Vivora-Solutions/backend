@@ -180,7 +180,7 @@ export const handleGetAllStylistsWithSchedule = async (user_id) => {
       return { ...stylist, schedule };
     })
   );
-  console.log("Stylists with schedule:", stylistsWithSchedule);
+  //console.log("Stylists with schedule:", stylistsWithSchedule);
 
   return {
     message: "Stylists with schedule fetched successfully",
