@@ -26,42 +26,83 @@ export const handleGetAllStylists = async (user_id) => {
   return data;
 };
 
-// Add stylist to salon (only by the owner)
+
 // export const handleAddStylist = async (user_id, stylistDetails) => {
 //   const salon_id = await getSalonIdByAdmin(user_id);
-//
-//   const { stylist_name, stylist_contact_number, profile_pic_link, bio } =
-//       stylistDetails;
-//
+
+//   const {
+//     stylist_name,
+//     stylist_contact_number,
+//     profile_pic_link,
+//     bio,
+//   } = stylistDetails;
+
+//   // Construct insert object
+//   const insertData = {
+//     stylist_name,
+//     stylist_contact_number,
+//     bio,
+//     salon_id,
+//     is_active: true,
+//   };
+
+//   // Only include profile_pic_link if it's provided (non-empty)
+//   if (profile_pic_link) {
+//     insertData.profile_pic_link = profile_pic_link;
+//   }
+
 //   const { data, error } = await supabase
 //       .from("stylist")
-//       .insert([
-//         {
-//           stylist_name,
-//           stylist_contact_number,
-//           profile_pic_link,
-//           bio,
-//           salon_id,
-//           is_active: true,
-//         },
-//       ])
+//       .insert([insertData])
 //       .select();
-//
+
 //   if (error) throw new Error(error.message);
 //   return { message: "Stylist added", data };
 // };
 
 
+export const handleInitialStylistSchedule = async (stylist_id, salon_id) => {
+  try {
+    // Get salon opening hours
+    const { data: openingHours, error: openingHoursError } = await supabase
+      .from("salon_opening_hours")
+      .select("day_of_week, opening_time, closing_time, is_open")
+      .eq("salon_id", salon_id);
+
+    if (openingHoursError) throw new Error(openingHoursError.message);
+    
+    // Filter only open days and prepare schedule data
+    const scheduleData = openingHours
+      .filter(day => day.is_open)
+      .map(day => ({
+        stylist_id,
+        day_of_week: day.day_of_week,
+        start_time_daily: day.opening_time,
+        end_time_daily: day.closing_time
+      }));
+    
+    if (scheduleData.length === 0) return { message: "No open days found for salon" };
+    
+    // Insert schedule records
+    const { data, error } = await supabase
+      .from("stylist_work_schedule_new")
+      .insert(scheduleData)
+      .select();
+      
+    if (error) throw new Error(error.message);
+    
+    return { message: "Default schedule created for stylist", data };
+  } catch (error) {
+    throw new Error(`Failed to create initial schedule: ${error.message}`);
+  }
+};
+
+// Modified handleAddStylist to include initial schedule creation
 export const handleAddStylist = async (user_id, stylistDetails) => {
   const salon_id = await getSalonIdByAdmin(user_id);
-
-  const {
-    stylist_name,
-    stylist_contact_number,
-    profile_pic_link,
-    bio,
-  } = stylistDetails;
-
+  
+  const { stylist_name, stylist_contact_number, profile_pic_link, bio } = stylistDetails;
+  
   // Construct insert object
   const insertData = {
     stylist_name,
@@ -70,22 +111,26 @@ export const handleAddStylist = async (user_id, stylistDetails) => {
     salon_id,
     is_active: true,
   };
-
-  // Only include profile_pic_link if it's provided (non-empty)
+  
   if (profile_pic_link) {
     insertData.profile_pic_link = profile_pic_link;
   }
-
+  
+  // Insert the stylist
   const { data, error } = await supabase
-      .from("stylist")
-      .insert([insertData])
-      .select();
-
+    .from("stylist")
+    .insert([insertData])
+    .select();
+    
   if (error) throw new Error(error.message);
-  return { message: "Stylist added", data };
+  
+  // Create initial schedule
+  if (data && data.length > 0) {
+    await handleInitialStylistSchedule(data[0].stylist_id, salon_id);
+  }
+  
+  return { message: "Stylist added with default schedule", data };
 };
-
-
 
 
 export const handleDisableStylist = async (user_id, stylist_id) => {
