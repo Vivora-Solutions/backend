@@ -121,6 +121,15 @@ export const getSalonsPerDay = async (req, res) => {
     }
 };
 
+export const getBookingsPerDay = async (req, res) => {
+    try {
+        const bookings = await getBookingsPerDayServices();
+        res.status(200).json(bookings);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 // Salon Controllers
 export const getAllSalons = async (req, res) => {
@@ -585,11 +594,4 @@ export const getSalonBookings = async (req, res) => {
     }
 };
 
-export const getBookingsPerDay = async (req, res) => {
-    try {
-        const bookings = await getBookingsPerDayServices();
-        res.status(200).json(bookings);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+

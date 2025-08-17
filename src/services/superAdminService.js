@@ -477,6 +477,13 @@ export const getSalonsPerDayServices  = async () => {
     return data;
 };
 
+export const getBookingsPerDayServices = async () => {
+    const { data, error } = await supabase.rpc("get_daily_booking_counts");
+    console.log
+    if (error) throw new Error(error.message);
+    return data;
+};
+
 
 export const fetchCustomerById = async (customerId) => {
     const { data, error } = await supabase
@@ -696,8 +703,3 @@ export const getTotalBookingCount = async () => {
 };
 
 
-export const getBookingsPerDayServices = async () => {
-  const { data, error } = await supabase.rpc("get_daily_booking_counts");
-  if (error) throw new Error(error.message);
-  return data;
-};
