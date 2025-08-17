@@ -2,33 +2,32 @@ import express from 'express';
 import { requireAuth } from "../middlewares/authMiddleware.js";
 import { requireSupperAdmin } from "../middlewares/requireSupperAdmin.js";
 import {
-    getCustomerCount,
-    getSalonCount,
-    getBookingCount,
+  getCustomerCount,
+  getSalonCount,
+  getBookingCount,
+  getAllUnapprovedSalons,
+  getUnapprovedSalonsByName,
+  getSalonBookings,
 
-    getAllUnapprovedSalons,
-    getUnapprovedSalonsByName,
-    getSalonBookings,
+  // Users
+  getAllusers,
+  getUserById,
+  updateUser,
 
-    // Users
-    getAllusers,
-    getUserById,
-    updateUser,
+  // Salons
+  getAllSalons,
+  getSalonById,
+  getSalonsPerDay,
+  updateSalon,
+  updateSalonStatus,
 
+  // Customers
+  getAllCustomers,
+  getAllBookingServices,
+  getBookingServicesBySalonId,
+  getBookingsPerDay,
 
-    // Salons
-    getAllSalons,
-    getSalonById,
-    getSalonsPerDay,
-    updateSalon,
-    updateSalonStatus,
-
-
-    // Customers
-    getAllCustomers,
-    getAllBookingServices,
-    getBookingServicesBySalonId,
-} from '../controllers/superAdminController.js';
+} from "../controllers/superAdminController.js";
 
 const router = express.Router();
 
@@ -65,5 +64,6 @@ router.get('/booking/:salon_id', getSalonBookings);
 
 router.get('/bookings/:salonId/services', getBookingServicesBySalonId);         // return start datetime, end datetime and booked at tieme of each salon
 
+router.get("/bookings-per-day", getBookingsPerDay); // get bookings per day
 
 export default router;

@@ -46,6 +46,7 @@ import {
     fetchBookingsByStylist,
     updateBookingStatusService,
     deleteBookingService,
+    getBookingsPerDayServices,
 
     // Customers
     fetchAllCustomers,
@@ -584,4 +585,11 @@ export const getSalonBookings = async (req, res) => {
     }
 };
 
-
+export const getBookingsPerDay = async (req, res) => {
+    try {
+        const bookings = await getBookingsPerDayServices();
+        res.status(200).json(bookings);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
