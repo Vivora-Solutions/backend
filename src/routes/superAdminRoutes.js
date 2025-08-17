@@ -57,6 +57,9 @@ router.put('/salonsStatus/:id', updateSalonStatus); //works for only status colu
 
 router.get('/salonsPerDay', getSalonsPerDay); //get number of salons  group by each day
 router.get('/customersPerDay', getAllCustomers); //get all number of  customers for group by each day
+router.get("/bookingsPerDay", getBookingsPerDay); // get bookings per day
+
+
 router.get('/booking-services', getAllBookingServices);         //return all daily booked count
 
 
@@ -64,6 +67,6 @@ router.get('/booking/:salon_id', getSalonBookings);
 
 router.get('/bookings/:salonId/services', getBookingServicesBySalonId);         // return start datetime, end datetime and booked at tieme of each salon
 
-router.get("/bookings-per-day", getBookingsPerDay); // get bookings per day
+
 
 export default router;
