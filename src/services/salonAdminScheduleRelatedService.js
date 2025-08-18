@@ -294,7 +294,7 @@ export const handleAddStylistSchedule = async (user_id, body) => {
 // };
 
 export const handleUpdateStylistSchedule = async (user_id, body) => {
-  console.log("Daminduuuuuuu"+ body)
+  console.log("Daminduuuuuuu" + body);
   const {
     stylist_id,
     schedule_id,
@@ -353,7 +353,6 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
   if (updateError) {
     console.log(updateError.message);
     throw new Error(updateError.message);
-
   }
 
   return {
@@ -363,28 +362,115 @@ export const handleUpdateStylistSchedule = async (user_id, body) => {
 };
 
 export const handleAddStylistLeave = async (user_id, body) => {
+  console.log("Starting handleAddStylistLeave with:", { user_id, body });
+
   const { stylist_id, date, leave_start_time, leave_end_time } = body;
   const adminSalonId = await getSalonIdByAdmin(user_id);
+
+  console.log("Admin salon ID:", adminSalonId);
+
   // Check if stylist belongs to admin's salon
   const { data: stylist, error: stylistError } = await supabase
     .from("stylist")
     .select("salon_id")
     .eq("stylist_id", stylist_id)
     .single();
+
+  console.log("Stylist query result:", { stylist, stylistError });
+
   if (stylistError || !stylist) {
     throw new Error("Stylist not found");
   }
   if (stylist.salon_id !== adminSalonId) {
     throw new Error("You do not have permission to add leave for this stylist");
   }
-  // Insert leave record
+
+  console.log("About to check bookings for date:", date);
+
+  // Check for conflicting bookings
+  const { data: conflictingBookings, error: bookingError } = await supabase
+    .from("booking")
+    .select("booking_id, booking_start_datetime, booking_end_datetime")
+    .eq("stylist_id", stylist_id)
+    .gte("booking_start_datetime", `${date}T00:00:00+00`)
+    .lte("booking_start_datetime", `${date}T23:59:59+00`)
+    .in("status", ["confirmed", "pending"]);
+
+  console.log("Booking query result:", { conflictingBookings, bookingError });
+
+  if (bookingError) {
+    console.error("Booking error details:", bookingError);
+    throw new Error("Error checking for conflicting bookings");
+  }
+
+  // Check if leave time overlaps with any booking
+  if (conflictingBookings && conflictingBookings.length > 0) {
+    console.log("Found conflicting bookings, checking overlap...");
+
+    const hasConflict = conflictingBookings.some((booking) => {
+      // Extract UTC time from leave datetime strings
+      const leaveStartTime = new Date(leave_start_time)
+        .toISOString()
+        .substring(11, 19);
+      const leaveEndTime = new Date(leave_end_time)
+        .toISOString()
+        .substring(11, 19);
+
+      // Extract UTC time from booking datetime
+      const bookingStartTime = new Date(booking.booking_start_datetime)
+        .toISOString()
+        .substring(11, 19);
+      const bookingEndTime = new Date(booking.booking_end_datetime)
+        .toISOString()
+        .substring(11, 19);
+
+      console.log("Comparing UTC times:", {
+        leaveStartTime,
+        leaveEndTime,
+        bookingStartTime,
+        bookingEndTime,
+      });
+
+      return leaveStartTime < bookingEndTime && leaveEndTime > bookingStartTime;
+    });
+
+    if (hasConflict) {
+      throw new Error(
+        "Cannot add leave: There are existing bookings during this time period"
+      );
+    }
+  }
+
+  console.log("No conflicts found, inserting leave...");
+
+  // Create proper datetime strings for database insertion (keep as UTC)
+  const leaveStartDateTime = `${date}T${new Date(leave_start_time)
+    .toISOString()
+    .substring(11, 19)}+00`;
+  const leaveEndDateTime = `${date}T${new Date(leave_end_time)
+    .toISOString()
+    .substring(11, 19)}+00`;
+
+  // Insert leave record with proper datetime format
   const { data: leave, error: leaveError } = await supabase
     .from("stylist_leave_new")
-    .insert([{ stylist_id, date, leave_start_time, leave_end_time }])
+    .insert([
+      {
+        stylist_id,
+        date,
+        leave_start_time: leaveStartDateTime,
+        leave_end_time: leaveEndDateTime,
+      },
+    ])
     .select();
+
+  console.log("Leave insert result:", { leave, leaveError });
+
   if (leaveError) {
+    console.error("Leave error details:", leaveError);
     throw new Error(leaveError.message);
   }
+
   return {
     message: "Leave added successfully",
     data: leave,
@@ -394,6 +480,7 @@ export const handleAddStylistLeave = async (user_id, body) => {
 export const handleEditStylistLeave = async (user_id, body) => {
   const { stylist_id, leave_id, date, leave_start_time, leave_end_time } = body;
   const adminSalonId = await getSalonIdByAdmin(user_id);
+
   // Check if stylist belongs to admin's salon
   const { data: stylist, error: stylistError } = await supabase
     .from("stylist")
@@ -408,6 +495,44 @@ export const handleEditStylistLeave = async (user_id, body) => {
       "You do not have permission to edit leave for this stylist"
     );
   }
+
+  // Check for conflicting bookings (excluding current leave being edited)
+  const { data: conflictingBookings, error: bookingError } = await supabase
+    .from("booking")
+    .select("booking_id, booking_start_datetime, booking_end_datetime")
+    .eq("stylist_id", stylist_id)
+    .gte("booking_start_datetime", `${date}T00:00:00+00`)
+    .lte("booking_start_datetime", `${date}T23:59:59+00`)
+    .in("booking_status", ["confirmed", "pending"]);
+
+  if (bookingError) {
+    throw new Error("Error checking for conflicting bookings");
+  }
+
+  // Check if leave time overlaps with any booking
+  if (conflictingBookings && conflictingBookings.length > 0) {
+    const hasConflict = conflictingBookings.some((booking) => {
+      // Extract time from datetime
+      const bookingStartTime = new Date(booking.booking_start_datetime)
+        .toTimeString()
+        .substring(0, 8);
+      const bookingEndTime = new Date(booking.booking_end_datetime)
+        .toTimeString()
+        .substring(0, 8);
+
+      // Check if leave time overlaps with booking time
+      return (
+        leave_start_time < bookingEndTime && leave_end_time > bookingStartTime
+      );
+    });
+
+    if (hasConflict) {
+      throw new Error(
+        "Cannot update leave: There are existing bookings during this time period"
+      );
+    }
+  }
+
   // Update leave record
   const { data: updatedLeave, error: updateError } = await supabase
     .from("stylist_leave_new")
@@ -415,10 +540,11 @@ export const handleEditStylistLeave = async (user_id, body) => {
       date,
       leave_start_time,
       leave_end_time,
-      created_at: new Date(),
+      updated_at: new Date(),
     })
     .eq("leave_id", leave_id)
     .select();
+
   if (updateError) {
     throw new Error(updateError.message);
   }
@@ -504,30 +630,30 @@ export const handleGetAllLeavesForStylist = async (user_id, stylist_id) => {
 
 export const handleGetAllLeavesForSalon = async (user_id) => {
   const adminSalonId = await getSalonIdByAdmin(user_id);
-  
+
   // Get all stylists for this salon
   const { data: stylists, error: stylistsError } = await supabase
     .from("stylist")
     .select("stylist_id")
     .eq("salon_id", adminSalonId);
-    
+
   if (stylistsError) {
     throw new Error(stylistsError.message);
   }
-  
+
   // Extract stylist IDs
-  const stylistIds = stylists.map(stylist => stylist.stylist_id);
-  
+  const stylistIds = stylists.map((stylist) => stylist.stylist_id);
+
   // Fetch all leaves for stylists in this salon
   const { data: leaves, error: leavesError } = await supabase
     .from("stylist_leave_new")
     .select("*")
     .in("stylist_id", stylistIds);
-    
+
   if (leavesError) {
     throw new Error(leavesError.message);
   }
-  
+
   return {
     message: "All leaves for salon fetched successfully",
     data: leaves,
