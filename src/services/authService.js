@@ -281,6 +281,28 @@ export const registerSalon = async (body) => {
 
     if (salonInsertError) throw new Error(salonInsertError.message);
 
+    const { data: salonData, error: fetchSalonError } = await supabase
+      .from("salon")
+      .select("salon_id")
+      .eq("admin_user_id", userRow.user_id)
+      .single();
+    if (fetchSalonError) throw new Error(fetchSalonError.message);
+
+    // Insert default opening hours for all days of the week
+    const daysOfWeek = [0, 1, 2, 3, 4, 5, 6]; // Sunday to Saturday
+    const defaultOpeningHours = daysOfWeek.map((day) => ({
+      salon_id: salonData.salon_id,
+      day_of_week: day,
+      opening_time: "09:00",
+      closing_time: "17:00",
+    }));
+
+    const { data: openingHoursData, error: openingHoursError } = await supabase
+      .from("salon_opening_hours")
+      .insert(defaultOpeningHours);
+
+    if (openingHoursError) throw new Error(openingHoursError.message);
+
     return {
       message:
         "Salon registration successful. Please check your email to confirm.",
@@ -297,7 +319,6 @@ export const registerSalon = async (body) => {
     throw new Error(`Salon registration failed: ${err.message}`);
   }
 };
-
 
 export const handleUserLogin = async ({ email, password }) => {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -372,13 +393,16 @@ export const fetchAuthenticatedUserDetails = async (user_id) => {
 export const handleGoogleOAuthLogin = async (access_token) => {
   try {
     // Verify the access token and get user info from Supabase
-    const { data: { user }, error: userError } = await supabase.auth.getUser(access_token);
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(access_token);
+
     if (userError || !user) {
-      throw new Error('Invalid Google OAuth session');
+      throw new Error("Invalid Google OAuth session");
     }
 
-    console.log('🔍 Verified user from token:', user.email);
+    console.log("🔍 Verified user from token:", user.email);
 
     // Check if user exists in our custom user table
     const { data: userRow, error: fetchError } = await supabase
@@ -388,10 +412,12 @@ export const handleGoogleOAuthLogin = async (access_token) => {
       .single();
 
     if (fetchError) {
-      throw new Error("User not found in system. Please complete registration first.");
+      throw new Error(
+        "User not found in system. Please complete registration first."
+      );
     }
 
-    console.log('✅ Found user in custom table:', userRow);
+    console.log("✅ Found user in custom table:", userRow);
 
     // Return the necessary data for frontend login handling
     // We don't need to get a fresh session here, the frontend already has it
@@ -403,14 +429,13 @@ export const handleGoogleOAuthLogin = async (access_token) => {
         // The frontend already has the refresh_token
       },
       customRole: userRow.role,
-      user_id: userRow.user_id
+      user_id: userRow.user_id,
     };
   } catch (error) {
-    console.error('Google OAuth login error:', error);
+    console.error("Google OAuth login error:", error);
     throw new Error(`Google OAuth login failed: ${error.message}`);
   }
 };
-
 
 // ...existing code...
 
@@ -418,16 +443,16 @@ export const updateCustomerPhone = async (userId, phoneNumber) => {
   try {
     // Validate phone number (basic validation)
     if (!phoneNumber || phoneNumber.trim().length < 10) {
-      throw new Error('Valid phone number is required');
+      throw new Error("Valid phone number is required");
     }
 
     // Update customer table with phone number
     const { data, error: updateError } = await supabase
-      .from('customer')
+      .from("customer")
       .update({
-        contact_number: phoneNumber.trim()
+        contact_number: phoneNumber.trim(),
       })
-      .eq('user_id', userId)
+      .eq("user_id", userId)
       .select()
       .single();
 
@@ -436,10 +461,9 @@ export const updateCustomerPhone = async (userId, phoneNumber) => {
     }
 
     return {
-      message: 'Phone number updated successfully',
-      contact_number: data.contact_number
+      message: "Phone number updated successfully",
+      contact_number: data.contact_number,
     };
-
   } catch (error) {
     throw new Error(`Phone update failed: ${error.message}`);
   }
@@ -448,9 +472,9 @@ export const updateCustomerPhone = async (userId, phoneNumber) => {
 export const getCustomerProfile = async (userId) => {
   try {
     const { data: customer, error } = await supabase
-      .from('customer')
-      .select('*')
-      .eq('user_id', userId)
+      .from("customer")
+      .select("*")
+      .eq("user_id", userId)
       .single();
 
     if (error) {
@@ -463,12 +487,11 @@ export const getCustomerProfile = async (userId) => {
   }
 };
 
-
 // export const handleGoogleOAuthLogin = async (access_token) => {
 //   try {
 //     // Get the user from Supabase using the access token
 //     const { data: { user }, error: userError } = await supabase.auth.getUser(access_token);
-    
+
 //     if (userError || !user) {
 //       throw new Error('Invalid Google OAuth session');
 //     }
@@ -486,7 +509,7 @@ export const getCustomerProfile = async (userId) => {
 
 //     // Get a fresh session for the user (this ensures we have the latest session data)
 //     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
+
 //     if (sessionError || !sessionData.session) {
 //       throw new Error('Failed to get user session');
 //     }
