@@ -470,7 +470,7 @@ export const handleGetAllBookings = async (user_id) => {
     }
   }
 
-  //console.log("Final Data:", data);
+  console.log("Final Data:", data);
   return data;
 };
 
