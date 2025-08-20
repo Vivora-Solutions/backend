@@ -6,7 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="1ff46fa7-34e4-4e56-8f14-b9fdccc44622" name="Changes" comment="add import">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/salonAdminBookingRelatedService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/salonAdminBookingRelatedService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/app.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +78,7 @@
       <workItem from="1755241389544" duration="607000" />
       <workItem from="1755353271936" duration="8092000" />
       <workItem from="1755437371456" duration="4821000" />
-      <workItem from="1755576504157" duration="2580000" />
+      <workItem from="1755576504157" duration="6278000" />
     </task>
     <task id="LOCAL-00001">
       <option name="closed" value="true" />
