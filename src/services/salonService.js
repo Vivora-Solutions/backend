@@ -396,7 +396,7 @@ const isCapableWorkstationAvailable = async (
           .from("booking")
           .select("booking_id")
           .eq("workstation_id", ws.workstation_id)
-          .or("status.eq.confirmed,status.eq.pending")
+          .or("status.eq.confirmed,status.eq.pending,status.eq.completed")
           .lt("booking_start_datetime", end.toISOString())
           .gt("booking_end_datetime", start.toISOString());
 
