@@ -11,8 +11,8 @@ import {
   getAllServicesBySalonId,
   //getAvailableTimeSlotss,
   fetchServiceById,
-  getAvailableTimeSlotsSithum,
-} from "../services/salonService.js";
+  getAvailableTimeSlotsSithum
+} from '../services/salonService.js';
 
 export const getAllSalons = async (req, res) => {
   try {
@@ -32,27 +32,28 @@ export const getSalonById = async (req, res) => {
   }
 };
 
+
 export const getSalonsByLocation = async (req, res) => {
   try {
     const { location, radius } = req.body;
 
     if (
       !location ||
-      typeof location.latitude !== "number" ||
-      typeof location.longitude !== "number"
+      typeof location.latitude !== 'number' ||
+      typeof location.longitude !== 'number'
     ) {
-      return res
-        .status(400)
-        .json({ error: "Invalid or missing location data" });
+      return res.status(400).json({ error: 'Invalid or missing location data' });
     }
 
     const data = await fetchSalonsByLocation(location, radius);
     res.json(data);
   } catch (err) {
     console.error("getSalonsByLocation error:", err.message);
-    res.status(500).json({ error: "Failed to fetch salons by location" });
+    res.status(500).json({ error: 'Failed to fetch salons by location' });
   }
 };
+
+
 
 export const getSalonsByName = async (req, res) => {
   try {
@@ -99,24 +100,24 @@ export const getStylistsBySalonId = async (req, res) => {
 //   }
 // };
 
+
+
 export const getSalonsByServiceName = async (req, res) => {
   try {
     const name = req.query.name;
     console.log(name);
 
-    if (!name || typeof name !== "string") {
-      return res
-        .status(400)
-        .json({ error: "Service name is required in query" });
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Service name is required in query' });
     }
 
     const salons = await fetchSalonsByServiceName(name);
     return res.status(200).json(salons);
   } catch (err) {
-    console.error("getSalonsByServiceName error:", err);
+    console.error('getSalonsByServiceName error:', err);
 
     const status = err.status || 500;
-    const message = err.message || "Unexpected server error";
+    const message = err.message || 'Unexpected server error';
 
     return res.status(status).json({ error: message });
   }
@@ -126,21 +127,18 @@ export const fetchSalonServices = async (req, res) => {
   const { salonId } = req.params;
 
   if (!salonId) {
-    return res
-      .status(400)
-      .json({ error: "Salon ID is required in path params." });
+    return res.status(400).json({ error: 'Salon ID is required in path params.' });
   }
 
   try {
     const services = await getAllServicesBySalonId(salonId);
     return res.status(200).json({ success: true, data: services });
   } catch (error) {
-    console.error("Error fetching services:", error.message);
-    return res
-      .status(500)
-      .json({ error: "Failed to fetch services for this salon." });
+    console.error('Error fetching services:', error.message);
+    return res.status(500).json({ error: 'Failed to fetch services for this salon.' });
   }
 };
+
 
 // getAvailableTimeSlots
 
@@ -177,21 +175,15 @@ export const fetchSalonServices = async (req, res) => {
 //   }
 // };
 
+
 export const fetchAvailableTimeSlotsSithum = async (req, res) => {
   try {
     const { service_ids, stylist_id, salon_id, date } = req.body;
 
     // Validate inputs
-    if (
-      !Array.isArray(service_ids) ||
-      service_ids.length === 0 ||
-      !stylist_id ||
-      !salon_id ||
-      !date
-    ) {
+    if (!Array.isArray(service_ids) || service_ids.length === 0 || !stylist_id || !salon_id || !date) {
       return res.status(400).json({
-        error:
-          "Missing or invalid input: service_ids (array), stylist_id, salon_id, or date are required.",
+        error: 'Missing or invalid input: service_ids (array), stylist_id, salon_id, or date are required.'
       });
     }
 
@@ -199,67 +191,45 @@ export const fetchAvailableTimeSlotsSithum = async (req, res) => {
       service_ids,
       stylist_id,
       salon_id,
-      date,
+      date
     });
 
     return res.status(200).json({
       success: true,
-      data: slots,
-      message: `Found ${slots.length} available time slots`,
-      workstation_info:
-        slots.length > 0
-          ? {
-              single_workstation_slots: slots.filter(
-                (s) => s.workstation_strategy === "single_workstation"
-              ).length,
-              multiple_workstation_slots: slots.filter(
-                (s) => s.workstation_strategy === "multiple_workstations"
-              ).length,
-            }
-          : null,
+      data: slots
     });
   } catch (error) {
-    console.error("Error fetching available time slots:", error.message);
-
-    // Provide more specific error messages
-    let errorMessage = "Failed to fetch available time slots";
-    let statusCode = 500;
-
-    if (error.message.includes("No workstations")) {
-      errorMessage = error.message;
-      statusCode = 400;
-    } else if (
-      error.message.includes("not scheduled") ||
-      error.message.includes("on leave")
-    ) {
-      errorMessage = error.message;
-      statusCode = 400;
-    }
-
-    return res.status(statusCode).json({
-      error: errorMessage,
-      details: error.message,
+    console.error('Error fetching available time slots:', error.message);
+    return res.status(500).json({
+      error: 'Failed to fetch available time slots',
+      details: error.message
     });
   }
 };
+
 
 export const getServiceById = async (req, res) => {
   try {
     const { id } = req.query;
     console.log("Requested service ID:", id);
 
-    if (!id || typeof id !== "string") {
-      return res.status(400).json({ error: "Service ID is required in query" });
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Service ID is required in query' });
     }
 
     const service = await fetchServiceById(id);
     return res.status(200).json(service);
   } catch (err) {
-    console.error("getServiceById error:", err);
+    console.error('getServiceById error:', err);
 
     const status = err.status || 500;
-    const message = err.message || "Unexpected server error";
+    const message = err.message || 'Unexpected server error';
 
     return res.status(status).json({ error: message });
   }
 };
+
+
+
+
+
