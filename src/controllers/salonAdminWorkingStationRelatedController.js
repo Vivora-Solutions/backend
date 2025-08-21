@@ -38,13 +38,13 @@ export const createWorkingStation = async (req, res) => {
 export const editWorkingStation = async (req, res) => {
     try {
         const user_id = req.userId;
-        const { station_id, station_name } = req.body;
+        const { workstation_id, workstation_name } = req.body;
 
-        if (!user_id || !station_id || !station_name) {
+        if (!user_id || !workstation_id || !workstation_name) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        const result = await handleEditWorkingStation(user_id, station_id, station_name);
+        const result = await handleEditWorkingStation(user_id, workstation_id, workstation_name);
         res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ error: err.message });
