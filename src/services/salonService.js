@@ -706,3 +706,96 @@ export const getAvailableTimeSlotsSithum = async ({
     workstation_count: slot.workstationInfo.workstations.length,
   }));
 };
+
+// Function to get all available time slots from all eligible stylists
+export const getAllAvailableTimeSlotsForServices = async ({
+  service_ids,
+  salon_id,
+  date,
+}) => {
+  if (!Array.isArray(service_ids) || !salon_id || !date) {
+    throw new Error("Missing required input: service_ids, salon_id, or date");
+  }
+
+  console.log("Getting all available slots for:", {
+    service_ids,
+    salon_id,
+    date,
+  });
+
+  // 1. Get all eligible stylists for the services using existing function from bookingService
+  const { getStylistsForAllServices } = await import("./bookingService.js");
+  const eligibleStylists = await getStylistsForAllServices(
+    salon_id,
+    service_ids
+  );
+
+  if (eligibleStylists.length === 0) {
+    throw new Error("No stylists available for the selected services");
+  }
+
+  // 2. Get time slots for each eligible stylist
+  const allTimeSlots = new Map(); // Map<timeSlot, stylistIds[]>
+
+  for (const stylist of eligibleStylists) {
+    try {
+      const stylistSlots = await getAvailableTimeSlotsSithum({
+        service_ids,
+        stylist_id: stylist.stylist_id,
+        salon_id,
+        date,
+      });
+
+      // Group slots by time
+      stylistSlots.forEach((slot) => {
+        const timeKey = `${slot.start.toISOString()}-${slot.end.toISOString()}`;
+
+        if (!allTimeSlots.has(timeKey)) {
+          allTimeSlots.set(timeKey, {
+            start: slot.start,
+            end: slot.end,
+            workstation_strategy: slot.workstation_strategy,
+            available_workstations: slot.available_workstations,
+            available_stylists: [],
+          });
+        }
+
+        allTimeSlots.get(timeKey).available_stylists.push({
+          stylist_id: stylist.stylist_id,
+          stylist_name: stylist.stylist_name,
+          profile_pic_link: stylist.profile_pic_link,
+        });
+      });
+    } catch (error) {
+      console.log(
+        `Stylist ${stylist.stylist_id} not available:`,
+        error.message
+      );
+      // Continue with other stylists
+    }
+  }
+
+  // 3. Convert to array and sort by time
+  const availableSlots = Array.from(allTimeSlots.values())
+    .sort((a, b) => a.start.getTime() - b.start.getTime())
+    .map((slot) => ({
+      ...slot,
+      stylist_count: slot.available_stylists.length,
+    }));
+
+  console.log(
+    `Found ${availableSlots.length} unique time slots across all stylists`
+  );
+
+  return availableSlots;
+};
+
+// Helper function to randomly assign a stylist for booking
+export const assignRandomStylistForSlot = (availableStylists) => {
+  if (!availableStylists || availableStylists.length === 0) {
+    throw new Error("No stylists available for this time slot");
+  }
+
+  const randomIndex = Math.floor(Math.random() * availableStylists.length);
+  return availableStylists[randomIndex];
+};

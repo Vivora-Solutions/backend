@@ -12,6 +12,7 @@ import {
   //getAvailableTimeSlotss,
   fetchServiceById,
   getAvailableTimeSlotsSithum,
+  getAllAvailableTimeSlotsForServices,
 } from "../services/salonService.js";
 
 export const getAllSalons = async (req, res) => {
@@ -261,5 +262,52 @@ export const getServiceById = async (req, res) => {
     const message = err.message || "Unexpected server error";
 
     return res.status(status).json({ error: message });
+  }
+};
+
+export const getAllAvailableTimeSlots = async (req, res) => {
+  try {
+    const { service_ids, salon_id, date } = req.body;
+
+    if (!service_ids || !salon_id || !date) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: service_ids, salon_id, date",
+      });
+    }
+
+    console.log("📅 Getting all available time slots for:", {
+      service_ids,
+      salon_id,
+      date,
+    });
+
+    const slots = await getAllAvailableTimeSlotsForServices({
+      service_ids,
+      salon_id,
+      date,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: slots,
+      message: `Found ${slots.length} available time slots`,
+    });
+  } catch (error) {
+    console.error("Error fetching all available time slots:", error.message);
+
+    let errorMessage = "Failed to fetch available time slots";
+    let statusCode = 500;
+
+    if (error.message.includes("No stylists available")) {
+      errorMessage = error.message;
+      statusCode = 400;
+    }
+
+    return res.status(statusCode).json({
+      success: false,
+      message: errorMessage,
+      error: error.message,
+    });
   }
 };
