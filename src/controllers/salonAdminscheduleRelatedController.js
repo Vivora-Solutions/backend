@@ -10,16 +10,16 @@ import {
   handleGetAllLeavesForStylist,
   handleGetStylistsWithSchedule,
   handleGetAllLeavesForSalon,
+  getScheduleOverviewService,
 } from "../services/salonAdminScheduleRelatedService.js";
-import { addStylist } from './salonAdminStylistRelatedController.js';
-
+import { addStylist } from "./salonAdminStylistRelatedController.js";
 
 export const getAllStylistsForSalon = async (req, res) => {
   try {
     const user_id = req.userId;
 
     if (!user_id) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const result = await handleGetAllStylistsForSalon(user_id);
@@ -41,7 +41,6 @@ export const getStylistsForSchedule = async (req, res) => {
   }
 };
 
-
 export const toggleStylistActiveStatus = async (req, res) => {
   try {
     const user_id = req.userId;
@@ -49,10 +48,14 @@ export const toggleStylistActiveStatus = async (req, res) => {
     const { is_active } = req.body;
 
     if (!user_id || !stylistId || is_active === undefined) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const result = await handleToggleStylistActiveStatus(user_id, stylistId, is_active);
+    const result = await handleToggleStylistActiveStatus(
+      user_id,
+      stylistId,
+      is_active
+    );
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -60,12 +63,12 @@ export const toggleStylistActiveStatus = async (req, res) => {
 };
 
 export const getStylistsWithSchedule = async (req, res) => {
-  try{
+  try {
     const user_id = req.userId;
     const { stylistId } = req.params;
 
     if (!user_id) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const result = await handleGetStylistsWithSchedule(user_id, stylistId);
@@ -75,14 +78,12 @@ export const getStylistsWithSchedule = async (req, res) => {
   }
 };
 
-
 export const getAllStylistsWithSchedule = async (req, res) => {
-  try{
+  try {
     const user_id = req.userId;
-    
 
     if (!user_id) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const result = await handleGetAllStylistsWithSchedule(user_id);
@@ -100,11 +101,11 @@ export const addStylistSchedule = async (req, res) => {
     //console.log(req.body);
 
     if (
-        !user_id ||
-        !stylist_id ||
-        day_of_week === undefined ||
-        !start_time_daily ||
-        !end_time_daily
+      !user_id ||
+      !stylist_id ||
+      day_of_week === undefined ||
+      !start_time_daily ||
+      !end_time_daily
     ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -121,8 +122,6 @@ export const addStylistSchedule = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
 
 // export const updateStylistSchedule = async (req, res) => {
 //   try {
@@ -141,28 +140,26 @@ export const addStylistSchedule = async (req, res) => {
 //   }
 // };
 
-
-
 export const updateStylistSchedule = async (req, res) => {
   console.log("Updating stylist schedule...");
   try {
     //console.log("Now in controller")
-   // console.log(req.body)
+    // console.log(req.body)
 
-    const user_id = req.userId
-    const stylist_id = req.params.stylistId
-    const schedule_id = req.params.scheduleId
-    let { day_of_week, start_time_daily, end_time_daily, created } = req.body
+    const user_id = req.userId;
+    const stylist_id = req.params.stylistId;
+    const schedule_id = req.params.scheduleId;
+    let { day_of_week, start_time_daily, end_time_daily, created } = req.body;
 
     if (
-        !user_id ||
-        !stylist_id ||
-        !schedule_id ||
-        day_of_week === undefined ||
-        !start_time_daily ||
-        !end_time_daily
+      !user_id ||
+      !stylist_id ||
+      !schedule_id ||
+      day_of_week === undefined ||
+      !start_time_daily ||
+      !end_time_daily
     ) {
-      return res.status(400).json({ error: "Missing required fields" })
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     // convert day_of_week -> number  (0 = Sunday)
@@ -174,12 +171,12 @@ export const updateStylistSchedule = async (req, res) => {
         wednesday: 3,
         thursday: 4,
         friday: 5,
-        saturday: 6
-      }
-      day_of_week = dayMap[day_of_week.toLowerCase()]
+        saturday: 6,
+      };
+      day_of_week = dayMap[day_of_week.toLowerCase()];
     } else {
       // ensure numeric strings become numbers
-      day_of_week = Number(day_of_week)
+      day_of_week = Number(day_of_week);
     }
 
     const result = await handleUpdateStylistSchedule(user_id, {
@@ -188,14 +185,13 @@ export const updateStylistSchedule = async (req, res) => {
       day_of_week,
       start_time_daily,
       end_time_daily,
-    })
+    });
 
-    res.status(200).json(result)
+    res.status(200).json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message });
   }
-}
-
+};
 
 export const addStylistLeave = async (req, res) => {
   try {
@@ -203,7 +199,13 @@ export const addStylistLeave = async (req, res) => {
     const stylist_id = req.params.stylistId;
     const { date, leave_start_time, leave_end_time } = req.body;
 
-    if (!user_id || !stylist_id || !date || !leave_start_time || !leave_end_time) {
+    if (
+      !user_id ||
+      !stylist_id ||
+      !date ||
+      !leave_start_time ||
+      !leave_end_time
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -219,16 +221,23 @@ export const addStylistLeave = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
 
-export const editStylistLeave = async(req, res) => {
+export const editStylistLeave = async (req, res) => {
   try {
     const user_id = req.userId;
     const stylist_id = req.params.stylistId;
     const leave_id = req.params.leaveId;
     const { date, leave_start_time, leave_end_time } = req.body;
 
-    if (!user_id || !stylist_id || !leave_id || !date || !leave_start_time || !leave_end_time) {
+    if (
+      !user_id ||
+      !stylist_id ||
+      !leave_id ||
+      !date ||
+      !leave_start_time ||
+      !leave_end_time
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -245,7 +254,7 @@ export const editStylistLeave = async(req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
 
 export const deleteStylistLeave = async (req, res) => {
   try {
@@ -267,7 +276,7 @@ export const deleteStylistLeave = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
 
 export const getAllLeavesForStylist = async (req, res) => {
   try {
@@ -294,6 +303,19 @@ export const getAllLeavesForSalon = async (req, res) => {
     }
 
     const result = await handleGetAllLeavesForSalon(user_id);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getScheduleOverview = async (req, res) => {
+  try {
+    const user_id = req.userId;
+    if (!user_id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const result = await getScheduleOverviewService(user_id);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

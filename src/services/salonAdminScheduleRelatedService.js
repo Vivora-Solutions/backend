@@ -660,6 +660,62 @@ export const handleGetAllLeavesForSalon = async (user_id) => {
   };
 };
 
+// Aggregated schedule overview for all stylists in the salon
+export const getScheduleOverviewService = async (user_id) => {
+  const salon_id = await getSalonIdByAdmin(user_id);
+
+  // Fetch stylists
+  const { data: stylists, error: stylistError } = await supabase
+    .from("stylist")
+    .select("*")
+    .eq("salon_id", salon_id);
+  if (stylistError) throw new Error(stylistError.message);
+
+  // Fetch bookings for all stylists
+  const stylistIds = stylists.map((s) => s.stylist_id);
+  const { data: bookings, error: bookingError } = await supabase
+    .from("booking")
+    .select("*")
+    .in("stylist_id", stylistIds);
+  if (bookingError) throw new Error(bookingError.message);
+
+  // Fetch leaves for all stylists
+  const { data: leaves, error: leavesError } = await supabase
+    .from("stylist_leave_new")
+    .select("*")
+    .in("stylist_id", stylistIds);
+  if (leavesError) throw new Error(leavesError.message);
+
+  // Fetch breaks for all stylists (if you have a breaks table)
+  let breaks = [];
+  if (supabase.from("stylist_leave_new")) {
+    const { data: breaksData, error: breaksError } = await supabase
+      .from("stylist_leave_new")
+      .select("*")
+      .in("stylist_id", stylistIds);
+    if (breaksError) throw new Error(breaksError.message);
+    breaks = breaksData;
+  }
+
+  // Fetch schedules for all stylists
+  const { data: schedules, error: scheduleError } = await supabase
+    .from("stylist_work_schedule_new")
+    .select("*")
+    .in("stylist_id", stylistIds);
+  if (scheduleError) throw new Error(scheduleError.message);
+
+  // Aggregate data per stylist
+  const overview = stylists.map((stylist) => ({
+    ...stylist,
+    bookings: bookings.filter((b) => b.stylist_id === stylist.stylist_id),
+    leaves: leaves.filter((l) => l.stylist_id === stylist.stylist_id),
+    breaks: breaks.filter((br) => br.stylist_id === stylist.stylist_id),
+    schedule: schedules.filter((sch) => sch.stylist_id === stylist.stylist_id),
+  }));
+
+  return { message: "Schedule overview fetched successfully", data: overview };
+};
+
 const getSalonIdByAdmin = async (user_id) => {
   const { data, error } = await supabase
     .from("salon")
