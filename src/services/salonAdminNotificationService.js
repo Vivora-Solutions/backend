@@ -55,6 +55,7 @@ export const getNotificationsForSalonAdmin = async (user_id) => {
         `
         booking_id,
         booking_start_datetime,
+        user_id,
         stylist:stylist_id (
           stylist_id,
           stylist_name
@@ -74,18 +75,50 @@ export const getNotificationsForSalonAdmin = async (user_id) => {
 
     if (bookingsError) throw new Error(bookingsError.message);
 
+    // Get customer details for online bookings
+    const onlineUserIds = bookings?.filter(booking => booking.user_id).map(booking => booking.user_id) || [];
+    let customerData = {};
+    
+    if (onlineUserIds.length > 0) {
+      const { data: customers, error: customerError } = await supabase
+        .from("customer")
+        .select("user_id, first_name, last_name, contact_number")
+        .in("user_id", onlineUserIds);
+        
+      if (!customerError && customers) {
+        customers.forEach(customer => {
+          customerData[customer.user_id] = customer;
+        });
+      }
+    }
+
     // Process bookings to return only required data
     const processedBookings = (bookings || []).map((booking) => {
       const startTime = new Date(booking.booking_start_datetime);
       const minutesRemaining = Math.round((startTime - sriLankaTime) / (1000 * 60));
+      
+      // Determine customer details based on booking type
+      let customerName = "Unknown Customer";
+      let customerPhone = null;
+      
+      if (booking.user_id && customerData[booking.user_id]) {
+        // Online customer
+        const customer = customerData[booking.user_id];
+        customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || "Online Customer";
+        customerPhone = customer.contact_number || null;
+      } else if (booking.non_online_customer) {
+        // Walk-in customer
+        customerName = booking.non_online_customer.non_online_customer_name || "Walk-in Customer";
+        customerPhone = booking.non_online_customer.non_online_customer_mobile_number || null;
+      }
       
       return {
         booking_id: booking.booking_id,
         booking_start_time: booking.booking_start_datetime,
         stylist_id: booking.stylist?.stylist_id || null,
         stylist_name: booking.stylist?.stylist_name || "Unassigned",
-        customer_name: booking.non_online_customer?.non_online_customer_name || "Online Customer",
-        customer_phone: booking.non_online_customer?.non_online_customer_mobile_number || null,
+        customer_name: customerName,
+        customer_phone: customerPhone,
         time_remaining_minutes: minutesRemaining > 0 ? minutesRemaining : 0
       };
     });
