@@ -539,7 +539,8 @@ export const handleGetBookingHistory = async (userId, page = 1, limit = 10) => {
       notes,
       salon (
         salon_name,
-        salon_address
+        salon_address,
+        salon_logo_link
       ),
       stylist (
         stylist_name
