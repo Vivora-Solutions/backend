@@ -285,7 +285,8 @@ export const handleGetUserBookings = async (userId) => {
       salon (
         salon_name,
         salon_address,
-        salon_contact_number
+        salon_contact_number,
+        salon_logo_link
       ),
       stylist (
         stylist_name
