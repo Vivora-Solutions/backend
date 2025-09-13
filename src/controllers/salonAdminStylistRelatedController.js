@@ -33,7 +33,7 @@ export const getStylist = async (req, res) => {
 export const getAllStylists = async (req, res) => {
   try {
     const user_id = req.userId;
-    console.log("In the controller");
+    // console.log("In the controller");
     if (!user_id) return res.status(400).json({ error: 'User ID missing' });
 
     const stylists = await handleGetAllStylists(user_id);
@@ -102,7 +102,7 @@ export const updateStylistName = async (req, res) => {
 
 export const updateStylist = async (req, res) => {
   try {
-    console.log("Updating stylist details in the Controller");
+    // console.log("Updating stylist details in the Controller");
     const user_id = req.userId;
     const { stylist_id } = req.params;
     const data = req.body;
