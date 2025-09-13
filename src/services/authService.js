@@ -402,7 +402,7 @@ export const handleGoogleOAuthLogin = async (access_token) => {
       throw new Error("Invalid Google OAuth session");
     }
 
-    console.log("🔍 Verified user from token:", user.email);
+    // console.log("🔍 Verified user from token:", user.email);
 
     // Check if user exists in our custom user table
     const { data: userRow, error: fetchError } = await supabase
@@ -417,7 +417,7 @@ export const handleGoogleOAuthLogin = async (access_token) => {
       );
     }
 
-    console.log("✅ Found user in custom table:", userRow);
+    // console.log("✅ Found user in custom table:", userRow);
 
     // Return the necessary data for frontend login handling
     // We don't need to get a fresh session here, the frontend already has it

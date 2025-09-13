@@ -311,13 +311,25 @@ export const getAllLeavesForSalon = async (req, res) => {
 
 export const getScheduleOverview = async (req, res) => {
   try {
+    // console.log("🎯🎯🎯 SCHEDULE OVERVIEW ENDPOINT HIT! 🎯🎯🎯");
+    // console.log("Request headers:", JSON.stringify(req.headers, null, 2));
+    // console.log("Request query:", req.query);
+    // console.log("Request body:", req.body);
     const user_id = req.userId;
     if (!user_id) {
+      // console.log("❌ No user ID provided - unauthorized");
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const result = await getScheduleOverviewService(user_id);
+    // console.log(`✅ User ID: ${user_id}`);
+    // const result = await getScheduleOverviewService(user_id);
+    // console.log("✅ Service completed successfully");
+    // console.log(
+    //   "📊 Returning data with bookings count:",
+    //   result?.data?.bookings?.length || 0
+    // );
     res.status(200).json(result);
   } catch (err) {
+    console.error("💥 Schedule overview controller error:", err);
     res.status(500).json({ error: err.message });
   }
 };

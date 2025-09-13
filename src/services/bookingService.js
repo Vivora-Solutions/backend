@@ -9,13 +9,13 @@ export const handleCreateBooking = async (
 ) => {
   const client = supabase;
 
-  console.log("📥 Booking request received", {
-    user_id,
-    stylist_id,
-    service_ids,
-    booking_start_datetime,
-    notes,
-  });
+  // console.log("📥 Booking request received", {
+  //   user_id,
+  //   stylist_id,
+  //   service_ids,
+  //   booking_start_datetime,
+  //   notes,
+  // });
 
   if (!Array.isArray(service_ids) || service_ids.length === 0) {
     console.error("❌ No service IDs provided");
@@ -62,10 +62,10 @@ export const handleCreateBooking = async (
     const booking_end = new Date(booking_start.getTime() + total_duration_minutes * 60000);
 
 
-    console.log('🔍 Booking Start:', booking_start_datetime);
-    console.log('🕒 Booking End:', booking_end);
-    console.log('🧮 Total Duration:', total_duration_minutes);
-    console.log('🏢 Salon ID:', salon_id);
+    // console.log('🔍 Booking Start:', booking_start_datetime);
+    // console.log('🕒 Booking End:', booking_end);
+    // console.log('🧮 Total Duration:', total_duration_minutes);
+    // console.log('🏢 Salon ID:', salon_id);
 
     // 5. Get all workstations in salon
     const { data: allStations, error: stationErr } = await client
@@ -98,11 +98,11 @@ export const handleCreateBooking = async (
     const busyStationIds = new Set((busyBookings || []).map((b) => b.workstation_id));
     const freeStationId = allStationIds.find((id) => !busyStationIds.has(id));
 
-    console.log("🔍 Workstation Availability Check", {
-      allStationIds,
-      busyStationIds: Array.from(busyStationIds),
-      freeStationId,
-    });
+    // console.log("🔍 Workstation Availability Check", {
+    //   allStationIds,
+    //   busyStationIds: Array.from(busyStationIds),
+    //   freeStationId,
+    // });
 
     if (!freeStationId) {
       throw new Error("No available workstation found for the selected time slot.");
@@ -152,13 +152,13 @@ export const handleCreateBooking = async (
       throw new Error("Failed to insert booking services. Booking has been rolled back.");
     }
 
-    console.log("✅ Booking created successfully:", {
-      booking_id,
-      user_id,
-      services: service_ids,
-      booking_start,
-      booking_end,
-    });
+    // console.log("✅ Booking created successfully:", {
+    //   booking_id,
+    //   user_id,
+    //   services: service_ids,
+    //   booking_start,
+    //   booking_end,
+    // });
 
     return {
       message: "Booking created successfully",
@@ -198,14 +198,14 @@ export const handleDeleteBooking = async (user_id, booking_id) => {
   const client = supabase;
 
   try {
-    console.log("🗑️ Delete booking request received:", { user_id, booking_id });
+    // console.log("🗑️ Delete booking request received:", { user_id, booking_id });
 
-    // 1. Fetch the booking to validate ownership
-    const { data: booking, error: fetchErr } = await client
-      .from('booking')
-      .select('user_id')
-      .eq('booking_id', booking_id)
-      .single();
+    // // 1. Fetch the booking to validate ownership
+    // const { data: booking, error: fetchErr } = await client
+    //   .from('booking')
+    //   .select('user_id')
+    //   .eq('booking_id', booking_id)
+    //   .single();
 
     if (fetchErr) {
       throw new Error("Booking not found or could not be fetched.");
@@ -226,11 +226,11 @@ export const handleDeleteBooking = async (user_id, booking_id) => {
       throw new Error("Failed to delete booking. Please try again.");
     }
 
-    console.log("✅ Booking deleted successfully for user:", user_id);
-    return {
-      message: "Booking deleted successfully",
-      booking_id,
-    };
+    // console.log("✅ Booking deleted successfully for user:", user_id);
+    // return {
+    //   message: "Booking deleted successfully",
+    //   booking_id,
+    // };
 
   } catch (err) {
     console.error("❌ Booking deletion error:", err.message);

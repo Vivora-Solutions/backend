@@ -662,58 +662,394 @@ export const handleGetAllLeavesForSalon = async (user_id) => {
 
 // Aggregated schedule overview for all stylists in the salon
 export const getScheduleOverviewService = async (user_id) => {
-  const salon_id = await getSalonIdByAdmin(user_id);
+  const startTime = Date.now();
+  console.log("🚀 Starting schedule overview fetch...");
 
-  // Fetch stylists
-  const { data: stylists, error: stylistError } = await supabase
-    .from("stylist")
-    .select("*")
-    .eq("salon_id", salon_id);
-  if (stylistError) throw new Error(stylistError.message);
+  try {
+    const salon_id = await getSalonIdByAdmin(user_id);
+    console.log(
+      `✅ Salon ID fetched: ${salon_id} (${Date.now() - startTime}ms)`
+    );
 
-  // Fetch bookings for all stylists
-  const stylistIds = stylists.map((s) => s.stylist_id);
-  const { data: bookings, error: bookingError } = await supabase
-    .from("booking")
-    .select("*")
-    .in("stylist_id", stylistIds);
-  if (bookingError) throw new Error(bookingError.message);
+    // Fetch all data in parallel for better performance
+    const metaDataStart = Date.now();
+    const [
+      { data: stylists, error: stylistError },
+      { data: services, error: servicesError },
+      { data: openingHours, error: openingHoursError },
+    ] = await Promise.all([
+      supabase.from("stylist").select("*").eq("salon_id", salon_id),
+      supabase.from("service").select("*").eq("salon_id", salon_id),
+      supabase.from("salon_opening_hours").select("*").eq("salon_id", salon_id),
+    ]);
+    console.log(`📋 Basic data fetched in ${Date.now() - metaDataStart}ms`);
 
-  // Fetch leaves for all stylists
-  const { data: leaves, error: leavesError } = await supabase
-    .from("stylist_leave_new")
-    .select("*")
-    .in("stylist_id", stylistIds);
-  if (leavesError) throw new Error(leavesError.message);
+    if (stylistError) throw new Error(stylistError.message);
+    if (servicesError) throw new Error(servicesError.message);
+    if (openingHoursError) throw new Error(openingHoursError.message);
 
-  // Fetch breaks for all stylists (if you have a breaks table)
-  let breaks = [];
-  if (supabase.from("stylist_leave_new")) {
-    const { data: breaksData, error: breaksError } = await supabase
-      .from("stylist_leave_new")
-      .select("*")
-      .in("stylist_id", stylistIds);
-    if (breaksError) throw new Error(breaksError.message);
-    breaks = breaksData;
+    // Fetch bookings, leaves, and schedules for all stylists
+    const stylistIds = stylists.map((s) => s.stylist_id);
+    console.log(`👥 Processing ${stylistIds.length} stylists`);
+
+    const mainDataStart = Date.now();
+    const [
+      { data: bookings, error: bookingError },
+      { data: leaves, error: leavesError },
+      { data: schedules, error: scheduleError },
+    ] = await Promise.all([
+      supabase
+        .from("booking")
+        .select(
+          `
+        booking_id,
+        booking_start_datetime,
+        booking_end_datetime,
+        status,
+        user_id,
+        stylist_id,
+        workstation_id,
+        non_online_customer_id,
+        notes,
+        total_duration_minutes,
+        total_price,
+        booked_mode,
+        salon_id,
+        created_at,
+        updated_at
+      `
+        )
+        .eq("salon_id", salon_id)
+        .neq("status", "cancelled")
+        .in("stylist_id", stylistIds)
+        .order("booking_start_datetime", { ascending: true }),
+      supabase
+        .from("stylist_leave_new")
+        .select("*")
+        .in("stylist_id", stylistIds),
+      supabase
+        .from("stylist_work_schedule_new")
+        .select("*")
+        .in("stylist_id", stylistIds),
+    ]);
+
+    console.log(`📅 Main queries completed in ${Date.now() - mainDataStart}ms`);
+
+    if (bookingError) throw new Error(bookingError.message);
+    if (leavesError) throw new Error(leavesError.message);
+    if (scheduleError) throw new Error(scheduleError.message);
+
+    // Fetch related data for bookings with proper error handling
+    console.log(
+      `📦 Processing ${bookings?.length || 0} bookings for related data...`
+    );
+
+    if (bookings && bookings.length > 0) {
+      try {
+        const bookingIds = bookings.map((b) => b.booking_id);
+        const userIds = [
+          ...new Set(
+            bookings
+              .filter((booking) => booking.user_id)
+              .map((booking) => booking.user_id)
+          ),
+        ];
+        const nonOnlineCustomerIds = [
+          ...new Set(
+            bookings
+              .filter((booking) => booking.non_online_customer_id)
+              .map((booking) => booking.non_online_customer_id)
+          ),
+        ];
+        const workstationIds = [
+          ...new Set(
+            bookings
+              .filter((booking) => booking.workstation_id)
+              .map((booking) => booking.workstation_id)
+          ),
+        ];
+
+        console.log(
+          `🔍 Fetching related data - UserIDs: ${userIds.length}, NonOnlineCustomers: ${nonOnlineCustomerIds.length}, Workstations: ${workstationIds.length}, BookingIDs: ${bookingIds.length}`
+        );
+
+        // Fetch related data step by step with individual error handling
+        const relatedDataStart = Date.now();
+
+        // Fetch customers
+        let customers = [];
+        if (userIds.length > 0) {
+          try {
+            const { data: customersData, error: customerError } = await supabase
+              .from("customer")
+              .select("user_id, first_name, last_name, contact_number")
+              .in("user_id", userIds);
+
+            if (customerError) {
+              console.error("❌ Customer error:", customerError);
+            } else {
+              customers = customersData || [];
+              console.log(`✅ Fetched ${customers.length} customers`);
+            }
+          } catch (err) {
+            console.error("❌ Customer fetch failed:", err.message);
+          }
+        }
+
+        // Fetch non-online customers
+        let nonOnlineCustomers = [];
+        if (nonOnlineCustomerIds.length > 0) {
+          try {
+            const {
+              data: nonOnlineCustomersData,
+              error: nonOnlineCustomerError,
+            } = await supabase
+              .from("non_online_customers")
+              .select(
+                "non_online_customer_id, non_online_customer_name, non_online_customer_mobile_number"
+              )
+              .in("non_online_customer_id", nonOnlineCustomerIds);
+
+            if (nonOnlineCustomerError) {
+              console.error(
+                "❌ Non-online customer error:",
+                nonOnlineCustomerError
+              );
+            } else {
+              nonOnlineCustomers = nonOnlineCustomersData || [];
+              console.log(
+                `✅ Fetched ${nonOnlineCustomers.length} non-online customers`
+              );
+            }
+          } catch (err) {
+            console.error("❌ Non-online customer fetch failed:", err.message);
+          }
+        }
+
+        // Fetch booking services
+        let bookingServices = [];
+        if (bookingIds.length > 0) {
+          try {
+            const { data: bookingServicesData, error: bookingServiceError } =
+              await supabase
+                .from("booking_services")
+                .select(
+                  `
+              booking_id,
+              service_id,
+              service_price_at_booking,
+              service_duration_at_booking,
+              service (
+                service_id,
+                service_name,
+                service_description,
+                price,
+                duration_minutes,
+                service_category
+              )
+            `
+                )
+                .in("booking_id", bookingIds);
+
+            if (bookingServiceError) {
+              console.error("❌ Booking service error:", bookingServiceError);
+            } else {
+              bookingServices = bookingServicesData || [];
+              console.log(
+                `✅ Fetched ${bookingServices.length} booking services`
+              );
+            }
+          } catch (err) {
+            console.error("❌ Booking service fetch failed:", err.message);
+          }
+        }
+
+        // Fetch workstations
+        let workstations = [];
+        if (workstationIds.length > 0) {
+          try {
+            const { data: workstationsData, error: workstationError } =
+              await supabase
+                .from("workstation")
+                .select("workstation_id, workstation_name")
+                .in("workstation_id", workstationIds);
+
+            if (workstationError) {
+              console.error("❌ Workstation error:", workstationError);
+            } else {
+              workstations = workstationsData || [];
+              console.log(`✅ Fetched ${workstations.length} workstations`);
+            }
+          } catch (err) {
+            console.error("❌ Workstation fetch failed:", err.message);
+          }
+        }
+
+        console.log(
+          `⚡ Related data queries completed in ${
+            Date.now() - relatedDataStart
+          }ms`
+        );
+
+        // Create lookup maps for O(1) performance
+        const customerMap = {};
+        customers.forEach((customer) => {
+          customerMap[customer.user_id] = customer;
+        });
+
+        const nonOnlineCustomerMap = {};
+        nonOnlineCustomers.forEach((customer) => {
+          nonOnlineCustomerMap[customer.non_online_customer_id] = customer;
+        });
+
+        const workstationMap = {};
+        workstations.forEach((ws) => {
+          workstationMap[ws.workstation_id] = ws;
+        });
+
+        const bookingServiceMap = {};
+        bookingServices.forEach((bs) => {
+          if (!bookingServiceMap[bs.booking_id]) {
+            bookingServiceMap[bs.booking_id] = [];
+          }
+          bookingServiceMap[bs.booking_id].push(bs);
+        });
+
+        // Create stylist map from existing stylists data
+        const stylistMap = {};
+        stylists.forEach((stylist) => {
+          stylistMap[stylist.stylist_id] = stylist;
+        });
+
+        // Enrich bookings with related data
+        bookings.forEach((booking) => {
+          // Add customer data
+          if (booking.user_id && customerMap[booking.user_id]) {
+            booking.customer = customerMap[booking.user_id];
+          } else {
+            booking.customer = null;
+          }
+
+          // Add non-online customer data
+          if (
+            booking.non_online_customer_id &&
+            nonOnlineCustomerMap[booking.non_online_customer_id]
+          ) {
+            booking.non_online_customer =
+              nonOnlineCustomerMap[booking.non_online_customer_id];
+          } else {
+            booking.non_online_customer = null;
+          }
+
+          // Add stylist data
+          if (booking.stylist_id && stylistMap[booking.stylist_id]) {
+            booking.stylist = {
+              stylist_id: stylistMap[booking.stylist_id].stylist_id,
+              stylist_name: stylistMap[booking.stylist_id].stylist_name,
+            };
+          }
+
+          // Add workstation data
+          if (
+            booking.workstation_id &&
+            workstationMap[booking.workstation_id]
+          ) {
+            booking.workstation = workstationMap[booking.workstation_id];
+          } else {
+            booking.workstation = null;
+          }
+
+          // Add booking services
+          booking.booking_services =
+            bookingServiceMap[booking.booking_id] || [];
+        });
+
+        console.log(
+          `🎯 Successfully enriched ${bookings.length} bookings with related data`
+        );
+
+        // Debug: Log booking services details
+        const bookingsWithServices = bookings.filter(
+          (b) => b.booking_services && b.booking_services.length > 0
+        );
+        console.log(
+          `🔧 Bookings with services: ${bookingsWithServices.length}/${bookings.length}`
+        );
+        if (bookingsWithServices.length > 0) {
+          const sampleBooking = bookingsWithServices[0];
+          console.log(
+            `🔧 Sample booking services:`,
+            JSON.stringify(sampleBooking.booking_services, null, 2)
+          );
+        }
+
+        // Debug: Log sample booking data to verify structure
+        if (bookings.length > 0) {
+          const sampleBooking = bookings[0];
+          console.log("📋 Sample booking data:", {
+            booking_id: sampleBooking.booking_id,
+            customer: sampleBooking.customer,
+            non_online_customer: sampleBooking.non_online_customer,
+            booking_services_count: sampleBooking.booking_services?.length || 0,
+            stylist: sampleBooking.stylist,
+            workstation: sampleBooking.workstation,
+          });
+        }
+      } catch (err) {
+        console.error("💥 Error in related data fetching:", err);
+        // Continue with basic data even if related data fails
+        bookings.forEach((booking) => {
+          const stylist = stylists.find(
+            (s) => s.stylist_id === booking.stylist_id
+          );
+          if (stylist) {
+            booking.stylist = {
+              stylist_id: stylist.stylist_id,
+              stylist_name: stylist.stylist_name,
+            };
+          }
+          booking.booking_services = [];
+          booking.customer = null;
+          booking.non_online_customer = null;
+          booking.workstation = null;
+        });
+      }
+    }
+
+    // Aggregate data per stylist
+    const stylistsData = stylists.map((stylist) => ({
+      ...stylist,
+      bookings: bookings.filter((b) => b.stylist_id === stylist.stylist_id),
+      leaves: leaves.filter((l) => l.stylist_id === stylist.stylist_id),
+      schedule: schedules.filter(
+        (sch) => sch.stylist_id === stylist.stylist_id
+      ),
+    }));
+
+    const endTime = Date.now();
+    const totalTime = endTime - startTime;
+    console.log(`🎉 Schedule overview completed in ${totalTime}ms`);
+    console.log(
+      `📊 Data summary: ${stylists?.length || 0} stylists, ${
+        bookings?.length || 0
+      } bookings, ${services?.length || 0} services`
+    );
+
+    return {
+      message: "Schedule overview fetched successfully",
+      data: {
+        stylists: stylistsData,
+        services: services || [],
+        openingHours: openingHours || [],
+        // Include raw data for easier mapping
+        bookings: bookings || [],
+        leaves: leaves || [],
+      },
+    };
+  } catch (error) {
+    console.error("💥 Schedule overview error:", error);
+    throw error;
   }
-
-  // Fetch schedules for all stylists
-  const { data: schedules, error: scheduleError } = await supabase
-    .from("stylist_work_schedule_new")
-    .select("*")
-    .in("stylist_id", stylistIds);
-  if (scheduleError) throw new Error(scheduleError.message);
-
-  // Aggregate data per stylist
-  const overview = stylists.map((stylist) => ({
-    ...stylist,
-    bookings: bookings.filter((b) => b.stylist_id === stylist.stylist_id),
-    leaves: leaves.filter((l) => l.stylist_id === stylist.stylist_id),
-    breaks: breaks.filter((br) => br.stylist_id === stylist.stylist_id),
-    schedule: schedules.filter((sch) => sch.stylist_id === stylist.stylist_id),
-  }));
-
-  return { message: "Schedule overview fetched successfully", data: overview };
 };
 
 const getSalonIdByAdmin = async (user_id) => {

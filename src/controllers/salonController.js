@@ -103,7 +103,7 @@ export const getStylistsBySalonId = async (req, res) => {
 export const getSalonsByServiceName = async (req, res) => {
   try {
     const name = req.query.name;
-    console.log(name);
+    // console.log(name);
 
     if (!name || typeof name !== "string") {
       return res
@@ -247,7 +247,7 @@ export const fetchAvailableTimeSlotsSithum = async (req, res) => {
 export const getServiceById = async (req, res) => {
   try {
     const { id } = req.query;
-    console.log("Requested service ID:", id);
+    // console.log("Requested service ID:", id);
 
     if (!id || typeof id !== "string") {
       return res.status(400).json({ error: "Service ID is required in query" });
@@ -276,11 +276,11 @@ export const getAllAvailableTimeSlots = async (req, res) => {
       });
     }
 
-    console.log("📅 Getting all available time slots for:", {
-      service_ids,
-      salon_id,
-      date,
-    });
+    // console.log("📅 Getting all available time slots for:", {
+    //   service_ids,
+    //   salon_id,
+    //   date,
+    // });
 
     const slots = await getAllAvailableTimeSlotsForServices({
       service_ids,

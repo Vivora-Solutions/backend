@@ -60,7 +60,6 @@
 //   }
 // };
 
-
 import {
   handleCreateBooking,
   handleUpdateBooking,
@@ -113,15 +112,19 @@ export const createBooking = async (req, res) => {
 };
 
 export const getAllBookings = async (req, res) => {
-  //console.log("Fetching all bookings...");
   try {
-    //console.log("Fetching all bookings for user ID:", req.userId);
+    // console.log("📞📞📞 INDIVIDUAL getAllBookings API CALLED! 📞📞📞");
     const user_id = req.userId;
     if (!user_id) return res.status(400).json({ error: "User ID not found" });
 
     const result = await handleGetAllBookings(user_id);
+    // console.log(
+    //   "📊 Individual API returning bookings count:",
+    //   result?.length || 0
+    // );
     res.status(200).json(result);
   } catch (err) {
+    console.error("❌ getAllBookings error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -175,7 +178,6 @@ export const deleteBooking = async (req, res) => {
   }
 };
 
-
 export const completeBooking = async (req, res) => {
   try {
     const user_id = req.userId;
@@ -191,4 +193,3 @@ export const completeBooking = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-

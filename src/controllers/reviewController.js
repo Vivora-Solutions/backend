@@ -31,9 +31,9 @@ export const createReview = async (req, res) => {
     
     // Validate required fields
     const { booking_id, salon_id, star_rating } = reviewData;
-    console.log(booking_id);
-    console.log(salon_id);
-    console.log(star_rating);
+    // console.log(booking_id);
+    // console.log(salon_id);
+    // console.log(star_rating);
     
     if (!booking_id || !salon_id || star_rating === undefined) {
       return res.status(400).json({ 
@@ -59,7 +59,7 @@ export const createReview = async (req, res) => {
 export const getUserReviews = async (req, res) => {
   try {
     const salon_id = req.params.salonId;
-    console.log(salon_id);
+    // console.log(salon_id);
     const { page = 1, limit = 10 } = req.query;
     
     if (!salon_id) return res.status(400).json({ error: 'Salon ID not found for this request' });
