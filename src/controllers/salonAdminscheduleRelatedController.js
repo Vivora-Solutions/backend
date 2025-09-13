@@ -321,7 +321,7 @@ export const getScheduleOverview = async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
     // console.log(`✅ User ID: ${user_id}`);
-    // const result = await getScheduleOverviewService(user_id);
+    const result = await getScheduleOverviewService(user_id);
     // console.log("✅ Service completed successfully");
     // console.log(
     //   "📊 Returning data with bookings count:",
