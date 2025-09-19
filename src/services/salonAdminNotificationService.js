@@ -83,7 +83,7 @@ export const getNotificationsForSalonAdmin = async (user_id) => {
       .gte("booking_start_datetime", todayStart)
       .lte("booking_start_datetime", todayEnd)
       .gte("booking_start_datetime", currentTimeFilter)
-      .not("status", "in", "(completed, cancelled)")
+      .not("status", "in", "(completed,cancelled)")
       .order("booking_start_datetime", { ascending: true });
 
     if (bookingsError) throw new Error(bookingsError.message);
