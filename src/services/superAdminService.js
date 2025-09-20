@@ -61,7 +61,7 @@ export const fetchUnapprovedSalons = async () => {
     const { data, error } = await supabase
         .from('salon')
         .select('salon_id, salon_logo_link, salon_address, salon_name')
-        .eq('is_approved', false)
+        .is('is_approved', null)
         .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
