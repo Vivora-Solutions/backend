@@ -7,6 +7,9 @@
     <list default="true" id="1ff46fa7-34e4-4e56-8f14-b9fdccc44622" name="Changes" comment="add import">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/authController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/authController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/authRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/authRoutes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/authService.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/authService.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +34,8 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/update&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/User/Desktop/Vivora/git/backend&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -79,6 +83,16 @@
       <workItem from="1755353271936" duration="8092000" />
       <workItem from="1755437371456" duration="4821000" />
       <workItem from="1755576504157" duration="6278000" />
+      <workItem from="1756716242395" duration="2556000" />
+      <workItem from="1756931557272" duration="420000" />
+      <workItem from="1757075800130" duration="26000" />
+      <workItem from="1757478061669" duration="1005000" />
+      <workItem from="1757793569074" duration="887000" />
+      <workItem from="1757820469537" duration="5634000" />
+      <workItem from="1757935332593" duration="8032000" />
+      <workItem from="1758082172951" duration="172000" />
+      <workItem from="1758193808999" duration="3155000" />
+      <workItem from="1758295600294" duration="4511000" />
     </task>
     <task id="LOCAL-00001">
       <option name="closed" value="true" />

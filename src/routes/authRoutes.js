@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  loginUser,
+  handleLoginController,
   logoutUser,
   refreshToken,
   getAuthenticatedUser,
@@ -21,7 +21,7 @@ const router = express.Router();
 router.post("/register-customer", registerCustomerController);
 router.post("/register-customer-google", registerCustomerControllerGoogle);
 router.post("/register-salon", registerSalonController);
-router.post("/login", loginUser);
+router.post("/login", handleLoginController);
 router.post("/logout", logoutUser);
 router.get("/me", requireAuth, getAuthenticatedUser);
 router.post("/refresh-token", refreshToken);

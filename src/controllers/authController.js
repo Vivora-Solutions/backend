@@ -69,29 +69,24 @@ export const registerSalonController = async (req, res) => {
   }
 };
 
-export const
-    loginUser = async (req, res) => {
+export const handleLoginController = async (req, res) => {
   try {
-    const sessionData = await handleUserLogin(req.body);
+    const { email, password } = req.body;
 
-    const { session, customRole } = sessionData;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
 
-    //  Set refresh token as a cookie
-    res.cookie("refresh_token", session.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // set to false for localhost dev
-      sameSite: "Strict", // or 'Lax' if frontend is on another origin
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    });
+    const result = await handleUserLogin({ email, password });
 
-    //  Return access token and role to frontend
-    res.status(200).json({
-      message: "Login successful",
-      access_token: session.access_token,
-      customRole,
-    });
-  } catch (error) {
-    res.status(401).json({ error: error.message });
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("Login error:", err);
+
+    const status = err.status || 500;
+    const message = err.message || "Unexpected server error";
+
+    return res.status(status).json({ error: message });
   }
 };
 

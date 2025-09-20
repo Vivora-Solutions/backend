@@ -10,17 +10,16 @@ export const registerCustomer = async (body) => {
     first_name,
     last_name,
     date_of_birth,
-    location,
     contact_number,
   } = body;
 
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  const locationWKT =
-    location && location.latitude && location.longitude
-      ? `SRID=4326;POINT(${location.longitude} ${location.latitude})`
-      : null;
+  // const locationWKT =
+  //   location && location.latitude && location.longitude
+  //     ? `SRID=4326;POINT(${location.longitude} ${location.latitude})`
+  //     : null;
 
   const { data: authData, error: signUpError } = await supabase.auth.signUp({
     email,
@@ -54,7 +53,6 @@ export const registerCustomer = async (body) => {
         first_name,
         last_name,
         date_of_birth,
-        location: locationWKT,
         contact_number,
       });
 

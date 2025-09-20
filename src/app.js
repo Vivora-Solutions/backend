@@ -18,8 +18,9 @@ const app = express();
 //  Proper CORS setup to allow cookies
 const corsOptions = {
   origin: 'http://localhost:5173',
-  // origin: 'http://192.168.158.190:5173',
-  // origin: "https://web5-swart.vercel.app",
+  //origin: 'https://salondora.com',
+  // 'http://192.168.158.190:5173',
+  //origin: "https://web5-swart.vercel.app",
 
   credentials: true,
 };
