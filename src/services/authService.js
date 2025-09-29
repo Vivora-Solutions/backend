@@ -139,19 +139,19 @@ export const registerCustomerGoogle = async (body) => {
     contact_number,
   } = body;
 
-  // Check if user already exists by EMAIL (not uid)
+  // Check if user already exists by UID (primary key)
   try {
-    // First check if user exists in our custom user table by email
+    // First check if user exists in our custom user table by uid
     const { data: existingCustomUser, error: customUserError } = await supabase
       .from("user")
       .select("user_id,role")
-      .eq("email", email)
+      .eq("user_id", uid)
       .single();
 
     if (existingCustomUser) {
       // User already exists in our system
       return {
-        message: "User already registered with this email",
+        message: "User already registered",
         user_id: existingCustomUser.user_id,
         role: existingCustomUser.role,
         exists: true,
@@ -176,42 +176,72 @@ export const registerCustomerGoogle = async (body) => {
 
   let userRow;
   try {
+    // Use upsert to handle concurrent requests gracefully
     const { data, error: userInsertError } = await supabase
       .from("user")
-      .insert({
-        user_id: uid, // Use the uid from Supabase Auth
-        email,
-        password_hash: null, // OAuth users don't have password
-        role: "customer",
-      })
+      .upsert(
+        {
+          user_id: uid, // Use the uid from Supabase Auth
+          email,
+          password_hash: null, // OAuth users don't have password
+          role: "customer",
+        },
+        {
+          onConflict: "user_id",
+          ignoreDuplicates: false,
+        }
+      )
       .select()
       .single();
 
     if (userInsertError) throw new Error(userInsertError.message);
     userRow = data;
 
-    const { error: customerInsertError } = await supabase
+    // Check if customer record already exists
+    const { data: existingCustomer, error: customerCheckError } = await supabase
       .from("customer")
-      .insert({
-        user_id: userRow.user_id,
-        first_name,
-        last_name,
-        date_of_birth,
-        location: locationWKT,
-        contact_number,
-      });
+      .select("user_id")
+      .eq("user_id", userRow.user_id)
+      .single();
 
-    if (customerInsertError) throw new Error(customerInsertError.message);
+    let customerExists = false;
+    if (existingCustomer) {
+      customerExists = true;
+    } else if (customerCheckError && customerCheckError.code !== "PGRST116") {
+      throw new Error(customerCheckError.message);
+    }
+
+    // Only insert customer record if it doesn't exist
+    if (!customerExists) {
+      const { error: customerInsertError } = await supabase
+        .from("customer")
+        .insert({
+          user_id: userRow.user_id,
+          first_name,
+          last_name,
+          date_of_birth,
+          location: locationWKT,
+          contact_number,
+        });
+
+      if (customerInsertError) throw new Error(customerInsertError.message);
+    }
 
     return {
-      message: "Google OAuth user registration completed successfully",
+      message: customerExists
+        ? "User already registered"
+        : "Google OAuth user registration completed successfully",
       user_id: userRow.user_id,
       role: "customer",
-      exists: false,
+      exists: customerExists,
     };
   } catch (err) {
-    // Cleanup: Delete user row if created
-    if (userRow?.user_id) {
+    // Only cleanup if the error is not related to duplicate key (user already exists)
+    if (
+      userRow?.user_id &&
+      !err.message.includes("duplicate") &&
+      !err.message.includes("already exists")
+    ) {
       await supabase.from("user").delete().eq("user_id", userRow.user_id);
     }
     throw new Error(`Customer registration failed: ${err.message}`);
